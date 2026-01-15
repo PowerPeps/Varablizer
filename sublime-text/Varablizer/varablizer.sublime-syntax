@@ -1,0 +1,436 @@
+%YAML 1.2
+---
+name: Varablizer
+file_extensions: [vz]
+scope: source.varablizer
+
+contexts:
+  prototype:
+    - include: comments
+
+  main:
+    - include: comments
+    - include: preprocessor
+    - include: goto-labels
+    - include: namespace-use
+    - include: class-declaration
+    - include: function-declaration
+    - include: flow-buffer
+    - include: pipeline
+    - include: lambda-operators
+    - include: control-flow
+    - include: low-level
+    - include: memory-management
+    - include: type-checking
+    - include: keywords
+    - include: types
+    - include: pointers
+    - include: builtin-functions
+    - include: operators
+    - include: array-literals
+    - include: numbers
+    - include: strings
+    - include: function-calls
+    - include: identifiers
+    - include: punctuation
+
+  # ==================================================
+  # COMMENTS
+  # ==================================================
+  comments:
+    # Multi-line comment
+    - match: '/\*'
+      scope: punctuation.definition.comment.begin.varablizer
+      push: block-comment
+
+    # Single-line comment
+    - match: '//'
+      scope: punctuation.definition.comment.varablizer
+      push: line-comment
+
+  block-comment:
+    - meta_scope: comment.block.varablizer
+    - match: '\*/'
+      scope: punctuation.definition.comment.end.varablizer
+      pop: true
+
+  line-comment:
+    - meta_scope: comment.line.double-slash.varablizer
+    - match: $\n?
+      pop: true
+
+  # ==================================================
+  # PREPROCESSOR (Conditional compilation)
+  # ==================================================
+  preprocessor:
+    - match: '^\s*(#)(if|ifdef|ifndef|else|elif|endif)\b'
+      captures:
+        1: punctuation.definition.preprocessor.varablizer
+        2: keyword.control.preprocessor.varablizer
+      push: preprocessor-line
+
+  preprocessor-line:
+    - meta_scope: meta.preprocessor.varablizer
+    - match: $\n?
+      pop: true
+    - include: main
+
+  # ==================================================
+  # GOTO LABELS (#1:, #2:, etc.)
+  # ==================================================
+  goto-labels:
+    # Label definition: #1:, #2:, #123:
+    - match: '(#)(\d+)(:)'
+      captures:
+        1: punctuation.definition.label.varablizer
+        2: entity.name.label.varablizer
+        3: punctuation.separator.label.varablizer
+      scope: meta.label.varablizer
+
+  # ==================================================
+  # NAMESPACE / USE
+  # ==================================================
+  namespace-use:
+    - match: '\b(namespace|use)\s+([a-zA-Z_][a-zA-Z0-9_/]*)'
+      captures:
+        1: keyword.declaration.namespace.varablizer
+        2: entity.name.namespace.varablizer
+
+  # ==================================================
+  # CLASS / STRUCT / OBJET
+  # ==================================================
+  class-declaration:
+    - match: '\b(class|struct|objet)\s+([a-zA-Z_][a-zA-Z0-9_]*)'
+      captures:
+        1: keyword.declaration.class.varablizer
+        2: entity.name.type.class.varablizer
+
+  # ==================================================
+  # FUNCTION DECLARATIONS
+  # ==================================================
+  function-declaration:
+    # Lifecycle methods (generic function)
+    - match: '\b(void|[a-zA-Z_][a-zA-Z0-9_]*)\s+(mount|boot|hydrate|dehydrate|updating|updated|exception)\s*(?=\()'
+      captures:
+        1: support.type.varablizer
+        2: entity.name.function.lifecycle.varablizer
+
+    # function name(...) or fn name(...)
+    - match: '\b(function|fn)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\()'
+      captures:
+        1: keyword.declaration.function.varablizer
+        2: entity.name.function.varablizer
+
+    # lambda keyword
+    - match: '\b(lambda)\b'
+      scope: keyword.declaration.function.varablizer
+
+  # ==================================================
+  # FLOW BUFFER
+  # ==================================================
+  flow-buffer:
+    - match: '\|\{'
+      scope: keyword.operator.flow.begin.varablizer
+      push: flow_buffer_content
+
+  flow_buffer_content:
+    - meta_scope: meta.flow.buffer.varablizer
+    - match: '\}>'
+      scope: keyword.operator.flow.end.varablizer
+      pop: true
+    - include: array-syntax
+    - include: types
+    - match: '\s+'
+
+  # ==================================================
+  # PIPELINE
+  # ==================================================
+  pipeline:
+    - match: '\|>'
+      scope: keyword.operator.pipeline.varablizer
+
+  # ==================================================
+  # LAMBDA OPERATORS
+  # ==================================================
+  lambda-operators:
+    # Arrow lambda
+    - match: '=>'
+      scope: keyword.operator.lambda.arrow.varablizer
+
+    # Block arrow lambda
+    - match: '=\{'
+      scope: punctuation.definition.lambda.begin.varablizer
+      push: lambda_block
+
+  lambda_block:
+    - meta_scope: meta.lambda.varablizer
+    - match: '\}>'
+      scope: punctuation.definition.lambda.end.varablizer
+      pop: true
+    - include: lambda-parameters
+    - include: main
+
+  lambda-parameters:
+    # Lambda parameter
+    - match: '\$\d+'
+      scope: variable.language.lambda.parameter.varablizer
+
+  # ==================================================
+  # CONTROL FLOW
+  # ==================================================
+  control-flow:
+    - match: '\b(for|while|do|if|else|return|rt|break|continue|goto)\b'
+      scope: keyword.control.varablizer
+
+  # ==================================================
+  # ASM INSTRUCTION (No compilation)
+  # ==================================================
+  low-level:
+    - match: '\bnop\b(?=\s*;)'
+      scope: keyword.other.lowlevel.varablizer
+
+  # ==================================================
+  # MEMORY MANAGEMENT
+  # ==================================================
+  memory-management:
+    # malloc and free functions
+    - match: '\b(malloc|free)\b(?=\()'
+      scope: support.function.memory.varablizer
+
+    # Destructor syntax: ~variable
+    - match: '~([a-zA-Z_][a-zA-Z0-9_]*)\b'
+      captures:
+        1: variable.other.varablizer
+      scope: meta.destructor.varablizer
+
+  # ==================================================
+  # TYPE CHECKING
+  # ==================================================
+  type-checking:
+    - match: '\b(typeof|instanceof)\b'
+      scope: keyword.operator.type.varablizer
+
+  # ==================================================
+  # KEYWORDS (this, etc.)
+  # ==================================================
+  keywords:
+    - match: '\bthis\b'
+      scope: variable.language.this.varablizer
+
+  # ==================================================
+  # TYPES
+  # ==================================================
+  types:
+    - include: type-string
+    - include: type-endian
+    - include: type-basic
+    - include: type-modifiers
+    - include: memory-specifiers
+    - include: alignment-specifiers
+
+  type-string:
+    # string<8>, string<16>, string<32>, etc.
+    - match: '\bstring<(\d+)>'
+      scope: support.type.string.varablizer
+      captures:
+        1: constant.numeric.integer.varablizer
+
+  type-endian:
+    - match: '\bint<(le|be)>'
+      scope: support.type.numeric.endian.varablizer
+
+  type-basic:
+    - match: '\b(raw|char|float|void)\b'
+      scope: support.type.varablizer
+
+  type-modifiers:
+    - match: '\b(signed|unsigned)\b'
+      scope: support.type.modifier.sign.varablizer
+
+  memory-specifiers:
+    - match: '\b[bywdq]_[1-9]\d*\b'
+      scope: support.type.modifier.memory.varablizer
+
+  alignment-specifiers:
+    - match: '@[1-9]\d*\b'
+      scope: support.type.modifier.alignment.varablizer
+
+  # ==================================================
+  # POINTERS & ADDRESS OPERATORS
+  # ==================================================
+  pointers:
+    - match: '(\*|&)'
+      scope: keyword.operator.pointer.varablizer
+
+  # ==================================================
+  # BUILTIN FUNCTIONS
+  # ==================================================
+  builtin-functions:
+    - match: '\b(pf|p|dd)\b(?=\()'
+      scope: support.function.builtin.varablizer
+
+  # ==================================================
+  # OPERATORS
+  # ==================================================
+  operators:
+    # Increment / decrement
+    - match: '(\+\+|--)'
+      scope: keyword.operator.increment.varablizer
+
+    # Null coalescing operator ??
+    - match: '\?\?'
+      scope: keyword.operator.null-coalescing.varablizer
+
+    # Elvis operator ?:
+    - match: '\?\:'
+      scope: keyword.operator.elvis.varablizer
+
+    # Ternary operator ? :
+    - match: '\?'
+      scope: keyword.operator.ternary.varablizer
+
+    # Compound assignment operators
+    - match: '(\+=|-=|\*=|/=|%=|&=|\|=|\^=|~=|<<=|>>=)'
+      scope: keyword.operator.assignment.compound.varablizer
+
+    # Assignment operators
+    - match: '(:=|=|:)'
+      scope: keyword.operator.assignment.varablizer
+
+    # Comparison operators
+    - match: '(==|!=|<=|>=|<|>)'
+      scope: keyword.operator.comparison.varablizer
+
+    # Arithmetic operators
+    - match: '(\+|-|\*|/|%)'
+      scope: keyword.operator.arithmetic.varablizer
+
+    # Bitwise operators
+    - match: '(&|\||\^|~|<<|>>)'
+      scope: keyword.operator.bitwise.varablizer
+
+  # ==================================================
+  # ARRAY LITERALS
+  # ==================================================
+  array-literals:
+    # Array literal
+    - match: '\['
+      scope: punctuation.section.array.begin.varablizer
+      push: array-literal-content
+
+  array-literal-content:
+    - meta_scope: meta.array.literal.varablizer
+    - match: '\]'
+      scope: punctuation.section.array.end.varablizer
+      pop: true
+    - match: ','
+      scope: punctuation.separator.array.varablizer
+    - include: main
+
+  # ==================================================
+  # NUMBERS
+  # ==================================================
+  numbers:
+    # Hexadecimal
+    - match: '\b0x[0-9a-fA-F]+\b'
+      scope: constant.numeric.hexadecimal.varablizer
+
+    # Binary
+    - match: '\b0b[01]+\b'
+      scope: constant.numeric.binary.varablizer
+
+    # Octal
+    - match: '\b0o[0-7]+\b'
+      scope: constant.numeric.octal.varablizer
+
+    # Float
+    - match: '\b\d+\.\d+\b'
+      scope: constant.numeric.float.varablizer
+
+    # Integer
+    - match: '\b\d+\b'
+      scope: constant.numeric.integer.varablizer
+
+  # ==================================================
+  # STRINGS WITH INTERPOLATION
+  # ==================================================
+  strings:
+    - match: '"'
+      push: string_double
+    - match: "'"
+      push: string_single
+    - match: '`'
+      push: string_backtick
+
+  string_double:
+    - meta_scope: string.quoted.double.varablizer
+    - include: string-interpolation
+    - match: '\\.'
+      scope: constant.character.escape.varablizer
+    - match: '"'
+      pop: true
+
+  string_single:
+    - meta_scope: string.quoted.single.varablizer
+    - include: string-interpolation
+    - match: '\\.'
+      scope: constant.character.escape.varablizer
+    - match: "'"
+      pop: true
+
+  string_backtick:
+    - meta_scope: string.quoted.other.backtick.varablizer
+    - include: string-interpolation
+    - match: '\\.'
+      scope: constant.character.escape.varablizer
+    - match: '`'
+      pop: true
+
+  string-interpolation:
+    - match: '\$\{'
+      scope: punctuation.definition.interpolation.begin.varablizer
+      push: string-interpolation-content
+
+  string-interpolation-content:
+    - meta_scope: meta.interpolation.varablizer
+    - match: '\}'
+      scope: punctuation.definition.interpolation.end.varablizer
+      pop: true
+    # Include main patterns for full expression support
+    - include: main
+
+  # ==================================================
+  # ARRAY SYNTAX (NEW)
+  # ==================================================
+  array-syntax:
+    - match: '\['
+      scope: punctuation.section.brackets.begin.varablizer
+      push: array-index
+
+  array-index:
+    - match: '\d+'
+      scope: constant.numeric.integer.varablizer
+    - match: '\]'
+      scope: punctuation.section.brackets.end.varablizer
+      pop: true
+
+  # ==================================================
+  # FUNCTION CALLS (AFTER function-declaration)
+  # ==================================================
+  function-calls:
+    - match: '\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\()'
+      scope: variable.function.varablizer
+
+  # ==================================================
+  # IDENTIFIERS (FALLBACK)
+  # ==================================================
+  identifiers:
+    - match: '\b[a-zA-Z_][a-zA-Z0-9_]*\b'
+      scope: variable.other.varablizer
+
+  # ==================================================
+  # PUNCTUATION
+  # ==================================================
+  punctuation:
+    - match: '[{}()\[\],;]'
+      scope: punctuation.separator.varablizer

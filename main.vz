@@ -1,0 +1,250 @@
+namespace ...
+use ...
+
+b_N  // bits
+y_N  // octets
+w_N  // words
+d_N  // dwords
+q_N  // qwords
+
+[ b_N | y_N | w_N | d_N | q_N ] [ @align ] [ signed | unsigned ] [ int<le> | int<le> | float | char | raw ]
+
+"A memory region may only be interpreted as a type whose size exactly matches the region size."
+
+b_8 @8 unsigned int<le> = 16
+
+b_8 int a 10;
+b_8 int a = 10;
+b_8 int a := 10;
+b_8 int a : 10;
+// Tout les opérateurs ci-dessus sont possible, ils n'ont actuellement aucunne différence.
+
+b_8 int {
+    a : 10,
+    b : 10,
+    c : 30,
+};
+
+b_8 char {
+    a : "10",
+    b : '10',
+    c : `10`,
+}; // Permet de définir plusieurs variable du même type à la suite, elle ce suivrons dans la mémoire.
+
+b_8 int* b = &a
+b_8 char* b = &a
+
+pf(char a)
+p(a)
+nop;
+dd(a)
+
+for (b_8 i, i > 10, i++) {...};
+
+for (b_8 i, i > 10, i++) do ...;
+
+do {...} while (i > b_8 int 10);
+
+while (*s++ = *t++)
+
+while (i > b_8 int 10) {...};
+
+while (i > b_8 int 10) do ...;
+
+Name class Name {
+    void mount() {}
+    void boot() {}
+
+    void updating() {}
+    void updatingPropertyName() {}
+
+    void updated() {}
+    void updatedPropertyName() {}
+
+    void hydrate() {}
+    void dehydrate() {}
+
+    void exception() {}
+}
+
+objet name {
+    ...
+}
+
+struct name {
+    ...
+}
+
+int function name (...) {...}
+
+int fn name (...) {...}
+
+
+lambda (...) {...}
+
+={...}>
+
+() => {}
+
+={ $1++; $2-- }>
+
+b_8 int a 10
+pf([a, a]={$1++; $2--}> a+b);
+
+f1() |> f2() 
+
+stdin |{b_8[256]}> stdout
+
+stdin |{b_8[256] @64}> stdout
+
+
+namespace demo.core
+use io.console
+
+// ==================================================
+// Déclarations mémoire & types
+// ==================================================
+
+b_8   unsigned int<le> counter := 0;
+y_4   signed   int<be> limit   := 10;
+w_2   char              letter := 'A';
+d_1   float             ratio  := 1;
+q_1   raw               blob;
+
+// alignement explicite
+b_16 @16 unsigned int<le> alignedValue := 16;
+
+// ==================================================
+// Pointeurs & adresses
+// ==================================================
+
+b_8 int value := 5;
+b_8 int* ptr  = &value;
+
+// ==================================================
+// Structure mémoire typée
+// ==================================================
+
+b_8 int {
+    a : 10,
+    b : 20,
+    c : 30,
+};
+
+// ==================================================
+// Chaînes
+// ==================================================
+
+b_8 char {
+    s1 : "hello",
+    s2 : 'x',
+    s3 : `raw`,
+};
+
+// ==================================================
+// Fonctions
+// ==================================================
+
+int function add(b_8 int x, b_8 int y) {
+    return x + y;
+}
+
+int fn sub(b_8 int x, b_8 int y) {
+    return x - y;
+}
+
+// ==================================================
+// Classe
+// ==================================================
+
+class Engine {
+
+    void mount() {
+        pf("Engine mounted");
+    }
+
+    void boot() {
+        pf("Engine booted");
+    }
+
+    void updated() {
+        pf("Engine updated");
+    }
+
+    void exception() {
+        pf("Engine exception");
+    }
+}
+
+// ==================================================
+// Objet
+// ==================================================
+
+objet app {
+    ...
+}
+
+// ==================================================
+// Lambda & opérateurs
+// ==================================================
+
+() => {
+    pf("Simple lambda");
+}
+
+adder := { $1++; $2-- }>
+
+result := [10, 5] ={$1++; $2--}> $1 + $2;
+
+// ==================================================
+// Pipeline
+// ==================================================
+
+f1() |> f2() |> f3()
+
+// ==================================================
+// Flow buffer
+// ==================================================
+
+stdin |{ b_8[256] @64 unsigned int<le> }> stdout
+
+// ==================================================
+// Builtins
+// ==================================================
+
+pf("Counter = ", counter);
+p(counter);
+dd(counter);
+nop;
+
+// ==================================================
+// Boucles
+// ==================================================
+
+for (b_8 i := 0, i < limit, i++) {
+    counter++;
+}
+
+for (b_8 i := 0, i < limit, i++) do
+    pf(i);
+
+do {
+    counter--;
+} while (counter > 0);
+
+while (counter < limit) {
+    counter++;
+}
+
+// pointeurs + incrément
+while (*ptr++ = *ptr--)
+
+// ==================================================
+// Comparaisons & arithmétique
+// ==================================================
+
+if (counter >= limit) {
+    pf("Done");
+} else {
+    pf("Running");
+}
