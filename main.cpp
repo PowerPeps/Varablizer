@@ -1,27 +1,28 @@
 #include <iostream>
 
 #include "src/execute/assembly.h"
-using namespace std;
+#include "src/execute/loader.h"
 
-int main()
+int main(int argc, char* argv[])
 {
-    const execute::program prog = {
-        { execute::opcode::PUSH, 12 },
-        { execute::opcode::PUSH, 164 },
-        { execute::opcode::DD},
-        { execute::opcode::MUL },
-        { execute::opcode::DD},
-        { execute::opcode::PUSH, 24 },
-        { execute::opcode::DD},
-        { execute::opcode::DIV },
-        { execute::opcode::HALT },
-    };
+    if (argc < 2)
+    {
+        std::cerr << "usage: varablizer.exe <program.vbin>\n";
+        return 1;
+    }
 
+    auto prog = execute::load_binary_mmap(argv[1]);
+#ifdef VARABLIZER_DEBUG
+    std::cerr << "loaded " << prog.size() << " instructions\n";
+#endif
 
     execute::assembly vm;
-    vm.load(prog);
+    vm.load(std::move(prog));
     vm.run();
 
-    std::cout << vm.to_string();
+#ifdef VARABLIZER_DEBUG
+    std::cerr << "stack_size=" << vm.stack_size() << " halted=" << vm.is_halted() << '\n';
+#endif
 
+    std::cout << vm.top() << '\n';
 }

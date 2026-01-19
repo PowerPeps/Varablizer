@@ -16,23 +16,21 @@
 
 namespace execute
 {
-    // Branch prediction hints for hot paths
-    #if defined(__GNUC__) || defined(__clang__)
-        #define VARABLIZER_LIKELY(x)   __builtin_expect(!!(x), 1)
-        #define VARABLIZER_UNLIKELY(x) __builtin_expect(!!(x), 0)
-    #else
-        #define VARABLIZER_LIKELY(x)   (x)
-        #define VARABLIZER_UNLIKELY(x) (x)
-    #endif
+#if defined(__GNUC__) || defined(__clang__)
+    #define VARABLIZER_LIKELY(x)   __builtin_expect(!!(x), 1)
+    #define VARABLIZER_UNLIKELY(x) __builtin_expect(!!(x), 0)
+#else
+    #define VARABLIZER_LIKELY(x)   (x)
+    #define VARABLIZER_UNLIKELY(x) (x)
+#endif
 
-    // Force inline for hot path functions
-    #if defined(__GNUC__) || defined(__clang__)
-        #define VARABLIZER_FORCE_INLINE __attribute__((always_inline)) inline
-    #elif defined(_MSC_VER)
-        #define VARABLIZER_FORCE_INLINE __forceinline
-    #else
-        #define VARABLIZER_FORCE_INLINE inline
-    #endif
+#if defined(__GNUC__) || defined(__clang__)
+    #define VARABLIZER_FORCE_INLINE __attribute__((always_inline)) inline
+#elif defined(_MSC_VER)
+    #define VARABLIZER_FORCE_INLINE __forceinline
+#else
+    #define VARABLIZER_FORCE_INLINE inline
+#endif
 
     class assembly
     {
@@ -149,7 +147,7 @@ namespace execute
             stack_.push_back(v);
         }
 
-        template<typename Op>
+        template <typename Op>
         VARABLIZER_FORCE_INLINE void binary(Op op) noexcept
         {
             value_t b = pop();
@@ -157,8 +155,9 @@ namespace execute
             push(op(a, b));
         }
 
-        // Handlers - all noexcept for maximum performance
-        static void h_nop(assembly&) noexcept {}
+        static void h_nop(assembly&) noexcept
+        {
+        }
 
         static void h_push(assembly& vm) noexcept
         {
@@ -235,10 +234,9 @@ namespace execute
         };
     };
 
-    #undef VARABLIZER_LIKELY
-    #undef VARABLIZER_UNLIKELY
-    #undef VARABLIZER_FORCE_INLINE
-
+#undef VARABLIZER_LIKELY
+#undef VARABLIZER_UNLIKELY
+#undef VARABLIZER_FORCE_INLINE
 } // namespace execute
 
 #endif // VARABLIZER_ASSEMBLY_H
