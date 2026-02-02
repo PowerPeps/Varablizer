@@ -212,6 +212,12 @@ namespace execute
             vm.halted_ = true;
         }
 
+        static void h_goto(assembly& vm) noexcept
+        {
+            vm.program_[vm.ip_].op = opcode::NOP;
+            vm.ip_ = static_cast<std::size_t>(--vm.program_[vm.ip_].operand);
+        }
+
     private:
         std::vector<value_t> stack_;
         program program_;
@@ -230,7 +236,8 @@ namespace execute
             &assembly::h_div,
             &assembly::h_mod,
             &assembly::h_dd,
-            &assembly::h_halt
+            &assembly::h_halt,
+            &assembly::h_goto
         };
     };
 
