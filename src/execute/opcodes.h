@@ -21,6 +21,12 @@
             DD,
             HALT,
             GOTO,
+            EQ,
+            NEQ,
+            LT,
+            LTE,
+            GT,
+            GTE,
             COUNT,
         };
 

@@ -198,6 +198,54 @@ namespace execute
             vm.push(VARABLIZER_LIKELY(b != 0) ? a % b : 0);
         }
 
+        static void h_eq(assembly& vm) noexcept
+        {
+            value_t b = vm.pop();
+            value_t a = vm.pop();
+
+            if(a == b) { vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand ); }
+        }
+
+        static void h_neq(assembly& vm) noexcept
+        {
+            value_t b = vm.pop();
+            value_t a = vm.pop();
+
+            if(a != b) { vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand ); }
+        }
+
+        static void h_lt(assembly& vm) noexcept
+        {
+            value_t b = vm.pop();
+            value_t a = vm.pop();
+
+            if(a < b) { vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand ); }
+        }
+
+        static void h_lte(assembly& vm) noexcept
+        {
+            value_t b = vm.pop();
+            value_t a = vm.pop();
+
+            if(a <= b) { vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand ); }
+        }
+
+        static void h_gt(assembly& vm) noexcept
+        {
+            value_t b = vm.pop();
+            value_t a = vm.pop();
+
+            if(a > b) { vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand ); }
+        }
+
+        static void h_gte(assembly& vm) noexcept
+        {
+            value_t b = vm.pop();
+            value_t a = vm.pop();
+
+            if(a >= b) { vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand ); }
+        }
+
         static void h_dd(assembly& vm) noexcept
         {
 #ifdef VARABLIZER_DEBUG
@@ -237,7 +285,14 @@ namespace execute
             &assembly::h_mod,
             &assembly::h_dd,
             &assembly::h_halt,
-            &assembly::h_goto
+            &assembly::h_goto,
+            &assembly::h_eq,
+            &assembly::h_neq,
+            &assembly::h_lt,
+            &assembly::h_lte,
+            &assembly::h_gt,
+            &assembly::h_gte,
+
         };
     };
 
