@@ -266,6 +266,19 @@ namespace execute
             vm.ip_ = static_cast<std::size_t>(--vm.program_[vm.ip_].operand);
         }
 
+        static void h_cout(assembly& vm) noexcept
+        {
+            std::cout << vm.top() << std::flush;
+        }
+
+        static void h_cin(assembly& vm) noexcept
+        {
+            value_t v{};
+            std::cin >> v;
+            std::cin.clear();
+            vm.push(v);
+        }
+
     private:
         std::vector<value_t> stack_;
         program program_;
@@ -292,7 +305,8 @@ namespace execute
             &assembly::h_lte,
             &assembly::h_gt,
             &assembly::h_gte,
-
+            &assembly::h_cout,
+            &assembly::h_cin,
         };
     };
 

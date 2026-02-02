@@ -27,6 +27,8 @@
             LTE,
             GT,
             GTE,
+            COUT,
+            CIN,
             COUNT,
         };
 
