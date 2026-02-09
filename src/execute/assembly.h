@@ -155,9 +155,7 @@ namespace execute
             push(op(a, b));
         }
 
-        static void h_nop(assembly&) noexcept
-        {
-        }
+        static void h_nop(assembly&) noexcept;
 
         static void h_push(assembly& vm) noexcept
         {
@@ -204,7 +202,6 @@ namespace execute
             value_t a = vm.pop();
 
             if(a == b) {
-                vm.program_[vm.ip_].op = opcode::NOP;
                 vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand );
             }
         }
@@ -215,7 +212,6 @@ namespace execute
             value_t a = vm.pop();
 
             if(a != b) {
-                vm.program_[vm.ip_].op = opcode::NOP;
                 vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand );
             }
         }
@@ -226,7 +222,6 @@ namespace execute
             value_t a = vm.pop();
 
             if(a < b) {
-                vm.program_[vm.ip_].op = opcode::NOP;
                 vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand );
             }
         }
@@ -237,7 +232,6 @@ namespace execute
             value_t a = vm.pop();
 
             if(a <= b) {
-                vm.program_[vm.ip_].op = opcode::NOP;
                 vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand );
             }
         }
@@ -248,7 +242,6 @@ namespace execute
             value_t a = vm.pop();
 
             if(a > b) {
-                vm.program_[vm.ip_].op = opcode::NOP;
                 vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand );
             }
         }
@@ -259,7 +252,6 @@ namespace execute
             value_t a = vm.pop();
 
             if(a >= b) {
-                vm.program_[vm.ip_].op = opcode::NOP;
                 vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand );
             }
         }
@@ -280,7 +272,6 @@ namespace execute
 
         static void h_goto(assembly& vm) noexcept
         {
-            vm.program_[vm.ip_].op = opcode::NOP;
             vm.ip_ = static_cast<std::size_t>(--vm.program_[vm.ip_].operand);
         }
 
@@ -305,6 +296,78 @@ namespace execute
                 return;
             }
             vm.push(vm.top());
+        }
+
+        static void h_goto_e(assembly& vm) noexcept
+        {
+            vm.program_[vm.ip_].op = opcode::NOP;
+            vm.ip_ = static_cast<std::size_t>(--vm.program_[vm.ip_].operand);
+        }
+
+        static void h_eq_e(assembly& vm) noexcept
+        {
+            value_t b = vm.pop();
+            value_t a = vm.pop();
+
+            if(a == b) {
+                vm.program_[vm.ip_].op = opcode::NOP;
+                vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand );
+            }
+        }
+
+        static void h_neq_e(assembly& vm) noexcept
+        {
+            value_t b = vm.pop();
+            value_t a = vm.pop();
+
+            if(a != b) {
+                vm.program_[vm.ip_].op = opcode::NOP;
+                vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand );
+            }
+        }
+
+        static void h_lt_e(assembly& vm) noexcept
+        {
+            value_t b = vm.pop();
+            value_t a = vm.pop();
+
+            if(a < b) {
+                vm.program_[vm.ip_].op = opcode::NOP;
+                vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand );
+            }
+        }
+
+        static void h_lte_e(assembly& vm) noexcept
+        {
+            value_t b = vm.pop();
+            value_t a = vm.pop();
+
+            if(a <= b) {
+                vm.program_[vm.ip_].op = opcode::NOP;
+                vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand );
+            }
+        }
+
+        static void h_gt_e(assembly& vm) noexcept
+        {
+            value_t b = vm.pop();
+            value_t a = vm.pop();
+
+            if(a > b) {
+                vm.program_[vm.ip_].op = opcode::NOP;
+                vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand );
+            }
+        }
+
+        static void h_gte_e(assembly& vm) noexcept
+        {
+            value_t b = vm.pop();
+            value_t a = vm.pop();
+
+            if(a >= b) {
+                vm.program_[vm.ip_].op = opcode::NOP;
+                vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand );
+            }
         }
 
     private:
@@ -333,6 +396,13 @@ namespace execute
             &assembly::h_lte,
             &assembly::h_gt,
             &assembly::h_gte,
+            &assembly::h_goto_e,
+            &assembly::h_eq_e,
+            &assembly::h_neq_e,
+            &assembly::h_lt_e,
+            &assembly::h_lte_e,
+            &assembly::h_gt_e,
+            &assembly::h_gte_e,
             &assembly::h_cout,
             &assembly::h_cin,
             &assembly::h_dup,
