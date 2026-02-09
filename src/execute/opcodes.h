@@ -29,6 +29,7 @@
             GTE,
             COUT,
             CIN,
+            DUP,
             COUNT,
         };
 

@@ -297,6 +297,16 @@ namespace execute
             vm.push(v);
         }
 
+        static void h_dup(assembly& vm) noexcept
+        {
+            if (vm.stack_.empty())
+            {
+                vm.halted_ = true;
+                return;
+            }
+            vm.push(vm.top());
+        }
+
     private:
         std::vector<value_t> stack_;
         program program_;
@@ -325,6 +335,7 @@ namespace execute
             &assembly::h_gte,
             &assembly::h_cout,
             &assembly::h_cin,
+            &assembly::h_dup,
         };
     };
 
