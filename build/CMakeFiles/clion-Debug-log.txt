@@ -1,0 +1,4 @@
+Cannot generate into G:\.dev\cpp\varablizer\build
+It was created with incompatible generator 'NMake Makefiles'
+
+Please either delete it manually or select another generation directory

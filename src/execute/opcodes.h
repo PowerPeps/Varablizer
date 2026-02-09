@@ -8,6 +8,17 @@
     {
         using value_t = std::int64_t;
 
+        enum class Group : std::uint8_t
+        {
+            CONTROL,
+            STACK,
+            MATH,
+            DEBUG,
+            FLOW,
+            IO,
+            MISC,
+        };
+
         enum class opcode : std::uint8_t
         {
             NOP = 0x00,

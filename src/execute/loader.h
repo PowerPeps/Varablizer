@@ -18,16 +18,7 @@
 
 namespace execute
 {
-    /*
-     * Binary format (.vbin) - Raw fixed-size instructions
-     *
-     * Each instruction: 9 bytes
-     *   [0]     : opcode   (uint8_t)
-     *   [1..8]  : operand  (int64_t, little-endian)
-     *
-     */
-
-    static constexpr std::size_t instruction_size = 9;
+    static constexpr std::size_t instruction_size = sizeof(std::uint8_t) + sizeof(value_t);
 
     // Fast loader using memory-mapped I/O when possible
     [[nodiscard]] inline program load_binary(const char* path)
