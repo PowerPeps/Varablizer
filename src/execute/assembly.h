@@ -376,37 +376,42 @@ namespace execute
         std::size_t ip_ = 0;
         std::size_t stack_limit_;
         bool halted_ = false;
-
         static constexpr std::array<handler_t, opcode_count> handlers_ =
         {
-            &assembly::h_nop,
-            &assembly::h_push,
-            &assembly::h_pop,
-            &assembly::h_add,
-            &assembly::h_sub,
-            &assembly::h_mul,
-            &assembly::h_div,
-            &assembly::h_mod,
-            &assembly::h_dd,
-            &assembly::h_halt,
-            &assembly::h_goto,
-            &assembly::h_eq,
-            &assembly::h_neq,
-            &assembly::h_lt,
-            &assembly::h_lte,
-            &assembly::h_gt,
-            &assembly::h_gte,
-            &assembly::h_goto_e,
-            &assembly::h_eq_e,
-            &assembly::h_neq_e,
-            &assembly::h_lt_e,
-            &assembly::h_lte_e,
-            &assembly::h_gt_e,
-            &assembly::h_gte_e,
-            &assembly::h_cout,
-            &assembly::h_cin,
-            &assembly::h_dup,
+            &assembly::h_nop,      // 0x00
+            &assembly::h_halt,     // 0x01
+
+            &assembly::h_push,     // 0x02
+            &assembly::h_dup,      // 0x03
+            &assembly::h_pop,      // 0x04
+
+            &assembly::h_add,      // 0x05
+            &assembly::h_sub,      // 0x06
+            &assembly::h_mul,      // 0x07
+            &assembly::h_div,      // 0x08
+            &assembly::h_mod,      // 0x09
+
+            &assembly::h_dd,       // 0x0A
+
+            &assembly::h_goto,     // 0x0B
+            &assembly::h_goto_e,   // 0x0C
+            &assembly::h_eq,       // 0x0D
+            &assembly::h_eq_e,     // 0x0E
+            &assembly::h_neq,      // 0x0F
+            &assembly::h_neq_e,    // 0x10
+            &assembly::h_lt,       // 0x11
+            &assembly::h_lt_e,     // 0x12
+            &assembly::h_lte,      // 0x13
+            &assembly::h_lte_e,    // 0x14
+            &assembly::h_gt,       // 0x15
+            &assembly::h_gt_e,     // 0x16
+            &assembly::h_gte,      // 0x17
+            &assembly::h_gte_e,    // 0x18
+
+            &assembly::h_cout,     // 0x19
+            &assembly::h_cin,      // 0x1A
         };
+
     };
 
 #undef VARABLIZER_LIKELY

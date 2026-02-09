@@ -10,34 +10,40 @@
 
         enum class opcode : std::uint8_t
         {
-            NOP = 0,
-            PUSH,
-            POP,
-            ADD,
-            SUB,
-            MUL,
-            DIV,
-            MOD,
-            DD,
-            HALT,
-            GOTO,
-            EQ,
-            NEQ,
-            LT,
-            LTE,
-            GT,
-            GTE,
-            GOTO_E,
-            EQ_E,
-            NEQ_E,
-            LT_E,
-            LTE_E,
-            GT_E,
-            GTE_E,
-            COUT,
-            CIN,
-            DUP,
-            COUNT,
+            NOP = 0x00,
+            HALT = 0x01,
+
+            PUSH = 0x02,
+            DUP = 0x03,
+            POP = 0x04,
+
+            ADD = 0x05,
+            SUB = 0x06,
+            MUL = 0x07,
+            DIV = 0x08,
+            MOD = 0x09,
+
+            DD = 0x0A,
+
+            GOTO = 0x0B,
+            GOTO_E = 0x0C,
+            EQ = 0x0D,
+            EQ_E = 0x0E,
+            NEQ = 0x0F,
+            NEQ_E = 0x10,
+            LT = 0x11,
+            LT_E = 0x12,
+            LTE = 0x13,
+            LTE_E = 0x14,
+            GT = 0x15,
+            GT_E = 0x16,
+            GTE = 0x17,
+            GTE_E = 0x18,
+
+            COUT = 0x19,
+            CIN = 0x1A,
+
+            COUNT = 0x1B,
         };
 
         struct instruction
