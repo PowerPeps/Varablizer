@@ -1,8 +1,21 @@
 cmake_minimum_required(VERSION 3.15)
+project(artisan)
+
+include(FetchContent)
+
+FetchContent_Declare(
+        termcolor
+        GIT_REPOSITORY https://github.com/ikalnytskyi/termcolor.git
+        GIT_TAG 89f20096bef51de347ec6f99345f65147359bd7c
+)
+
+FetchContent_MakeAvailable(termcolor)
 
 add_executable(artisan main.cpp)
 
 target_compile_features(artisan PRIVATE cxx_std_20)
+
+target_link_libraries(artisan PRIVATE termcolor)
 
 # Force console subsystem on Windows + static linking
 if(WIN32)
@@ -15,10 +28,10 @@ endif()
 
 # Copy executable to project root after build
 add_custom_command(TARGET artisan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
+        COMMAND ${CMAKE_COMMAND} -E copy
         $<TARGET_FILE:artisan>
         "${CMAKE_SOURCE_DIR}/artisan${CMAKE_EXECUTABLE_SUFFIX}"
-    COMMENT "Copying artisan to project root..."
+        COMMENT "Copying artisan to project root..."
 )
 
 # Link filesystem library if needed (GCC < 9, Clang < 9)

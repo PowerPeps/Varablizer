@@ -8,24 +8,25 @@
 #include <vector>
 #include <map>
 #include <filesystem>
+#include <termcolor/termcolor.hpp>
 
 namespace fs = std::filesystem;
 
 void print_help(const std::map<std::string, std::unique_ptr<artisan::Command>>& commands)
 {
-    std::cout << "Usage: artisan \033[33m<command>\033[0m [arguments]\n\n";
+    std::cout << "Usage: artisan " << termcolor::bright_yellow <<  "<command> " << termcolor::reset << "[arguments]\n\n";
     std::cout << "Available commands:\n";
 
     for (const auto& [name, cmd] : commands)
     {
-        std::cout << "  \033[32m" << name << "\033[0m\n";
+        std::cout << "  " << termcolor::bright_green << name << termcolor::reset << "\n";
         std::cout << "    " << cmd->description() << "\n\n";
     }
 
-    std::cout << "  \033[32mhelp\033[0m\n";
+    std::cout << "  " << termcolor::bright_green << "help\n" << termcolor::reset;
     std::cout << "    Display this help message\n\n";
 
-    std::cout << "For command usage: artisan \033[33m<command>\033[0m --help\n";
+    std::cout << "For command usage: artisan " << termcolor::bright_yellow << "<command>" << termcolor::reset << " --help\n";
     std::cout.flush();
 }
 
@@ -62,8 +63,8 @@ int main(int argc, char** argv)
     auto it = commands.find(command_name);
     if (it == commands.end())
     {
-        std::cerr << "\033[1;31m[ERROR]\033[0m Unknown command '" << command_name << "'\n\n";
-        std::cerr << "Run '\033[32martisan help\033[0m' to see available commands.\n";
+        std::cerr << termcolor::bright_red << "[ERROR]" << termcolor::reset << " Unknown command '" << command_name << "'\n\n";
+        std::cerr << "Run " << termcolor::bright_yellow << "artisan help" << termcolor::reset << " to see available commands.\n";
         std::cerr.flush();
         return 1;
     }
