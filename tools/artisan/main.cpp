@@ -8,25 +8,24 @@
 #include <vector>
 #include <map>
 #include <filesystem>
-#include <termcolor/termcolor.hpp>
 
 namespace fs = std::filesystem;
 
 void print_help(const std::map<std::string, std::unique_ptr<artisan::Command>>& commands)
 {
-    std::cout << "Usage: artisan " << termcolor::bright_yellow <<  "<command> " << termcolor::reset << "[arguments]\n\n";
+    std::cout << "Usage: artisan \033[33m<command>\033[0m [arguments]\n\n";
     std::cout << "Available commands:\n";
 
     for (const auto& [name, cmd] : commands)
     {
-        std::cout << "  " << termcolor::bright_green << name << termcolor::reset << "\n";
+        std::cout << "  \033[32m" << name << "\033[0m\n";
         std::cout << "    " << cmd->description() << "\n\n";
     }
 
-    std::cout << "  " << termcolor::bright_green << "help\n" << termcolor::reset;
+    std::cout << "  \033[32mhelp\033[0m\n";
     std::cout << "    Display this help message\n\n";
 
-    std::cout << "For command usage: artisan " << termcolor::bright_yellow << "<command>" << termcolor::reset << " --help\n";
+    std::cout << "For command usage: artisan \033[33m<command>\033[0m --help\n";
     std::cout.flush();
 }
 
