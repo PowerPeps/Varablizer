@@ -91,7 +91,7 @@ int main(int argc, char** argv)
     }
     catch (const std::exception& e)
     {
-        std::cerr << "\033[1;31m[ERROR]\033[0m " << e.what() << "\n";
+        std::cerr << termcolor::bright_red << "[ERROR] " << termcolor::reset << e.what() << "\n";
         std::cerr.flush();
         return 1;
     }
