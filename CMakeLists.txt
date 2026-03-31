@@ -19,6 +19,11 @@ set(OPCODE_HEADERS
     "${OPCODES_DIR}/debug.h"
     "${OPCODES_DIR}/flow.h"
     "${OPCODES_DIR}/io.h"
+    "${OPCODES_DIR}/locals.h"
+    "${OPCODES_DIR}/heap.h"
+    "${OPCODES_DIR}/call.h"
+    "${OPCODES_DIR}/bitwise.h"
+    "${OPCODES_DIR}/compare.h"
 )
 
 # Generated files
@@ -55,4 +60,3 @@ if(WIN32)
         target_link_options(varablizer PRIVATE -static-libgcc -static-libstdc++ -static)
     endif()
 endif()
-add_executable(compiler src/compile/lexer/Sentence.cpp)

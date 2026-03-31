@@ -3,11 +3,15 @@
 
 #include "opcodes.h"
 #include "opcodes_config.h"
+#include "vtypes.h"
+#include "typed_stack.h"
 #include "validator.h"
 
 #include <array>
+#include <vector>
 #include <stdexcept>
 #include <cassert>
+#include <cstring>
 
 #ifdef DEBUG
 #include <sstream>
@@ -33,6 +37,15 @@ namespace execute
     #define f_incline inline
 #endif
 
+    // Per-function call frame metadata
+    struct call_frame
+    {
+        std::uint32_t return_ip;     // instruction pointer to resume after RET
+        std::uint32_t locals_base;   // index into local_vals_/local_types_ where frame starts
+        std::uint16_t locals_count;  // total local slots (args + declared locals)
+        std::uint16_t args_count;    // number of arguments passed
+    };
+
     class assembly
     {
     public:
@@ -43,7 +56,10 @@ namespace execute
         explicit assembly(std::size_t stack_limit = default_stack_limit) noexcept
             : stack_limit_(stack_limit)
         {
-            stack_.reserve(1024);
+            eval_.reserve(1024);
+            local_vals_.reserve(256);
+            local_types_.reserve(256);
+            heap_.reserve(4096);
         }
 
         void load(program&& prog)
@@ -57,19 +73,20 @@ namespace execute
                     ": " + result.error->message
                 );
             }
-
-            program_ = std::move(prog);
-            ip_ = 0;
-            halted_ = false;
-            stack_.clear();
+            load_unchecked(std::move(prog));
         }
 
         void load_unchecked(program&& prog) noexcept
         {
             program_ = std::move(prog);
-            ip_ = 0;
-            halted_ = false;
-            stack_.clear();
+            ip_      = 0;
+            halted_  = false;
+            fbp_     = 0;
+            eval_.clear();
+            calls_.clear();
+            local_vals_.clear();
+            local_types_.clear();
+            heap_.clear();
         }
 
         void run() noexcept
@@ -81,14 +98,22 @@ namespace execute
             }
         }
 
-        [[nodiscard]] bool is_halted() const noexcept { return halted_; }
-        [[nodiscard]] std::size_t ip() const noexcept { return ip_; }
-        [[nodiscard]] std::size_t stack_size() const noexcept { return stack_.size(); }
+        [[nodiscard]] bool        is_halted()   const noexcept { return halted_; }
+        [[nodiscard]] std::size_t ip()          const noexcept { return ip_; }
+        [[nodiscard]] std::size_t stack_size()  const noexcept { return eval_.size(); }
 
+        // Top value on the evaluation stack
         [[nodiscard]] value_t top() const noexcept
         {
-            assert(!stack_.empty());
-            return stack_.back();
+            assert(!eval_.empty());
+            return eval_.top_value();
+        }
+
+        // Top type on the evaluation stack
+        [[nodiscard]] vtype top_type() const noexcept
+        {
+            assert(!eval_.empty());
+            return eval_.top_type();
         }
 
         void set_stack_limit(std::size_t limit) noexcept { stack_limit_ = limit; }
@@ -98,18 +123,17 @@ namespace execute
         [[nodiscard]] std::string to_string() const
         {
             std::ostringstream oss;
-            oss << "-- \033[34m" << ip_ << "\033[0m\n";
+            oss << "-- ip=\033[34m" << ip_ << "\033[0m  fbp=" << fbp_ << "\n";
 
-            for (auto it = stack_.rbegin(); it != stack_.rend(); ++it)
+            for (std::size_t i = eval_.values.size(); i > 0; --i)
             {
-                if (it == stack_.rbegin())
-                {
-                    oss << "\033[32m|\033[0m\033[33m" << *it << "\033[0m\033[32m|\033[0m\n";
-                }
+                const value_t v = eval_.values[i - 1];
+                const vtype   t = eval_.types[i - 1];
+                if (i == eval_.values.size())
+                    oss << "\033[32m|\033[0m\033[33m" << v << "\033[0m\033[32m|\033[0m";
                 else
-                {
-                    oss << "|" << *it << "|\n";
-                }
+                    oss << "|" << v << "|";
+                oss << "  (w" << static_cast<int>(t.bit_width()) << ")\n";
             }
             oss << "\n";
             return oss.str();
@@ -130,46 +154,88 @@ namespace execute
             ++ip_;
         }
 
+        // Pop a raw value (no type) — for legacy handlers
         f_incline value_t pop() noexcept
         {
-            assert(!stack_.empty());
-            value_t v = stack_.back();
-            stack_.pop_back();
-            return v;
+            assert(!eval_.empty());
+            return eval_.pop_value();
         }
 
+        // Push with default I64 type — for legacy PUSH opcode
         f_incline void push(value_t v) noexcept
         {
-            if (unlikely(stack_.size() >= stack_limit_))
+            if (unlikely(eval_.size() >= stack_limit_))
             {
                 halted_ = true;
                 return;
             }
-            stack_.push_back(v);
+            eval_.push(v, types::I64);
         }
 
+        // Typed binary operation: promotes types, auto-masks result
+        template <typename Op>
+        f_incline void binary_typed(Op op) noexcept
+        {
+            if (unlikely(eval_.size() < 2))
+            {
+                halted_ = true;
+                return;
+            }
+
+            const value_t bv = eval_.values.back();
+            const vtype   bt = eval_.types.back();
+            eval_.values.pop_back();
+            eval_.types.pop_back();
+
+            value_t& av = eval_.values.back();
+            vtype&   at = eval_.types.back();
+
+            const vtype result_type = promote(at, bt);
+            const value_t raw = op(av, bv);
+            av = truncate_to_type(raw, result_type);
+            at = result_type;
+        }
+
+        // Legacy untyped binary — kept for backward compatibility with old PUSH usage
         template <typename Op>
         f_incline void binary(Op op) noexcept
         {
-            auto& b = stack_.back();
-            auto& a = stack_[stack_.size() - 2];
-            a = op(a, b);
-            stack_.pop_back();
+            binary_typed(op);
         }
 
     private:
-        std::vector<value_t> stack_;
-        program program_;
-        std::size_t ip_ = 0;
-        std::size_t stack_limit_;
-        bool halted_ = false;
+        // ── Evaluation stack (expression temporaries) ─────────────────────────
+        typed_stack eval_;
 
+        // ── Call stack (return addresses + frame metadata) ────────────────────
+        std::vector<call_frame> calls_;
+
+        // ── Local variable table (flat SoA, partitioned by frames) ───────────
+        std::vector<value_t> local_vals_;
+        std::vector<vtype>   local_types_;
+        std::uint32_t fbp_ = 0;   // frame base pointer (index into local_vals_)
+
+        // ── Heap (byte-addressable, bump allocator) ───────────────────────────
+        std::vector<std::uint8_t> heap_;
+
+        // ── Program state ─────────────────────────────────────────────────────
+        program       program_;
+        std::size_t   ip_          = 0;
+        std::size_t   stack_limit_;
+        bool          halted_      = false;
+
+        // ── Opcode handlers (included as members) ────────────────────────────
 #include "opcodes/control.h"
 #include "opcodes/stack.h"
 #include "opcodes/math.h"
 #include "opcodes/debug.h"
 #include "opcodes/flow.h"
 #include "opcodes/io.h"
+#include "opcodes/locals.h"
+#include "opcodes/heap.h"
+#include "opcodes/call.h"
+#include "opcodes/bitwise.h"
+#include "opcodes/compare.h"
 
 #include "generated/handlers_table.inl"
 

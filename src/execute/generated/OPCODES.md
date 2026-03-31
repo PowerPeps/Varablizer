@@ -33,8 +33,61 @@
 | GTE_E | 0x18 | FLOW | `h_gte_e` |
 | COUT | 0x19 | IO | `h_cout` |
 | CIN | 0x1A | IO | `h_cin` |
+| LOAD_LOCAL | 0x1C | LOCALS | `h_load_local` |
+| STORE_LOCAL | 0x1D | LOCALS | `h_store_local` |
+| LOAD_HEAP_8 | 0x22 | HEAP | `h_load_heap_8` |
+| LOAD_HEAP_16 | 0x23 | HEAP | `h_load_heap_16` |
+| LOAD_HEAP_32 | 0x24 | HEAP | `h_load_heap_32` |
+| LOAD_HEAP_64 | 0x25 | HEAP | `h_load_heap_64` |
+| STORE_HEAP_16 | 0x27 | HEAP | `h_store_heap_16` |
+| STORE_HEAP_32 | 0x28 | HEAP | `h_store_heap_32` |
+| STORE_HEAP_64 | 0x29 | HEAP | `h_store_heap_64` |
+| DEREF_16 | 0x2B | HEAP | `h_deref_16` |
+| DEREF_32 | 0x2C | HEAP | `h_deref_32` |
+| DEREF_64 | 0x2D | HEAP | `h_deref_64` |
+| RET_VOID | 0x33 | CALL | `h_ret_void` |
+| NEG | 0x38 | BITWISE | `h_neg` |
+| INC | 0x39 | BITWISE | `h_inc` |
+| DEC | 0x3A | BITWISE | `h_dec` |
+| AND | 0x3B | BITWISE | `h_and` |
+| OR | 0x3C | BITWISE | `h_or` |
+| XOR | 0x3D | BITWISE | `h_xor` |
+| NOT | 0x3E | BITWISE | `h_not` |
+| CMP_EQ | 0x54 | COMPARE | `h_cmp_eq` |
+| CMP_NEQ | 0x55 | COMPARE | `h_cmp_neq` |
+| CMP_LT | 0x56 | COMPARE | `h_cmp_lt` |
+| CMP_LTE | 0x57 | COMPARE | `h_cmp_lte` |
+| CMP_GT | 0x58 | COMPARE | `h_cmp_gt` |
+| CMP_GTE | 0x59 | COMPARE | `h_cmp_gte` |
+| JZ | 0x60 | FLOW | `h_jz` |
+| JNZ | 0x61 | FLOW | `h_jnz` |
+| COUT_CHAR | 0x68 | IO | `h_cout_char` |
+| COUT_STR | 0x69 | IO | `h_cout_str` |
 
 ## By Group
+
+### BITWISE
+
+- **NEG** (0x38) - `h_neg`
+- **INC** (0x39) - `h_inc`
+- **DEC** (0x3A) - `h_dec`
+- **AND** (0x3B) - `h_and`
+- **OR** (0x3C) - `h_or`
+- **XOR** (0x3D) - `h_xor`
+- **NOT** (0x3E) - `h_not`
+
+### CALL
+
+- **RET_VOID** (0x33) - `h_ret_void`
+
+### COMPARE
+
+- **CMP_EQ** (0x54) - `h_cmp_eq`
+- **CMP_NEQ** (0x55) - `h_cmp_neq`
+- **CMP_LT** (0x56) - `h_cmp_lt`
+- **CMP_LTE** (0x57) - `h_cmp_lte`
+- **CMP_GT** (0x58) - `h_cmp_gt`
+- **CMP_GTE** (0x59) - `h_cmp_gte`
 
 ### CONTROL
 
@@ -61,11 +114,33 @@
 - **GT_E** (0x16) - `h_gt_e`
 - **GTE** (0x17) - `h_gte`
 - **GTE_E** (0x18) - `h_gte_e`
+- **JZ** (0x60) - `h_jz`
+- **JNZ** (0x61) - `h_jnz`
+
+### HEAP
+
+- **LOAD_HEAP_8** (0x22) - `h_load_heap_8`
+- **LOAD_HEAP_16** (0x23) - `h_load_heap_16`
+- **LOAD_HEAP_32** (0x24) - `h_load_heap_32`
+- **LOAD_HEAP_64** (0x25) - `h_load_heap_64`
+- **STORE_HEAP_16** (0x27) - `h_store_heap_16`
+- **STORE_HEAP_32** (0x28) - `h_store_heap_32`
+- **STORE_HEAP_64** (0x29) - `h_store_heap_64`
+- **DEREF_16** (0x2B) - `h_deref_16`
+- **DEREF_32** (0x2C) - `h_deref_32`
+- **DEREF_64** (0x2D) - `h_deref_64`
 
 ### IO
 
 - **COUT** (0x19) - `h_cout`
 - **CIN** (0x1A) - `h_cin`
+- **COUT_CHAR** (0x68) - `h_cout_char`
+- **COUT_STR** (0x69) - `h_cout_str`
+
+### LOCALS
+
+- **LOAD_LOCAL** (0x1C) - `h_load_local`
+- **STORE_LOCAL** (0x1D) - `h_store_local`
 
 ### MATH
 
@@ -83,4 +158,4 @@
 
 
 ---
-*Total opcodes: 27*
+*Total opcodes: 57*

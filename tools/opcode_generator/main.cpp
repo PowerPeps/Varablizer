@@ -24,10 +24,11 @@ std::vector<OpcodeInfo> parse_opcodes(const fs::path& opcodes_dir)
 {
     std::vector<OpcodeInfo> opcodes;
 
-    // Regex to match: /* [[Opcode::NAME, 0xVALUE, Group::GROUP]] */ ... void HANDLER(
+    // Regex to match: /* [[Opcode::NAME, 0xVALUE, Group::GROUP]] */
+    // followed by optional // comment lines, then the handler function
 
     std::regex pattern(
-        R"(/\*\s*\[\[Opcode::(\w+),\s*0x([0-9A-Fa-f]+),\s*Group::(\w+)\]\]\s*\*/\s*(?:static\s+)?void\s+(h_\w+))"
+        R"(/\*\s*\[\[Opcode::(\w+),\s*0x([0-9A-Fa-f]+),\s*Group::(\w+)\]\]\s*\*/(?:\s*//[^\n]*)*\s*(?:static\s+)?void\s+(h_\w+))"
     );
 
     for (const auto& entry : fs::recursive_directory_iterator(opcodes_dir))
@@ -135,14 +136,6 @@ void generate_handlers_table(const std::vector<OpcodeInfo>& opcodes, const fs::p
     }
 
 
-
-    const std::uint8_t expected_count = 0x1B;  // Update this when adding more opcodes
-    while (current_idx < expected_count)
-    {
-        out << "    &assembly::h_nop,      // 0x" << std::hex << std::uppercase
-            << static_cast<int>(current_idx) << " (unmigrated - old handler still in assembly.h)\n";
-        current_idx++;
-    }
 
     out << "};\n";
 }

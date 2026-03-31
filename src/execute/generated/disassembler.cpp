@@ -63,6 +63,66 @@ std::string_view opcode_to_string(opcode op) noexcept
         return "COUT";
     case opcode::CIN:
         return "CIN";
+    case opcode::LOAD_LOCAL:
+        return "LOAD_LOCAL";
+    case opcode::STORE_LOCAL:
+        return "STORE_LOCAL";
+    case opcode::LOAD_HEAP_8:
+        return "LOAD_HEAP_8";
+    case opcode::LOAD_HEAP_16:
+        return "LOAD_HEAP_16";
+    case opcode::LOAD_HEAP_32:
+        return "LOAD_HEAP_32";
+    case opcode::LOAD_HEAP_64:
+        return "LOAD_HEAP_64";
+    case opcode::STORE_HEAP_16:
+        return "STORE_HEAP_16";
+    case opcode::STORE_HEAP_32:
+        return "STORE_HEAP_32";
+    case opcode::STORE_HEAP_64:
+        return "STORE_HEAP_64";
+    case opcode::DEREF_16:
+        return "DEREF_16";
+    case opcode::DEREF_32:
+        return "DEREF_32";
+    case opcode::DEREF_64:
+        return "DEREF_64";
+    case opcode::RET_VOID:
+        return "RET_VOID";
+    case opcode::NEG:
+        return "NEG";
+    case opcode::INC:
+        return "INC";
+    case opcode::DEC:
+        return "DEC";
+    case opcode::AND:
+        return "AND";
+    case opcode::OR:
+        return "OR";
+    case opcode::XOR:
+        return "XOR";
+    case opcode::NOT:
+        return "NOT";
+    case opcode::CMP_EQ:
+        return "CMP_EQ";
+    case opcode::CMP_NEQ:
+        return "CMP_NEQ";
+    case opcode::CMP_LT:
+        return "CMP_LT";
+    case opcode::CMP_LTE:
+        return "CMP_LTE";
+    case opcode::CMP_GT:
+        return "CMP_GT";
+    case opcode::CMP_GTE:
+        return "CMP_GTE";
+    case opcode::JZ:
+        return "JZ";
+    case opcode::JNZ:
+        return "JNZ";
+    case opcode::COUT_CHAR:
+        return "COUT_CHAR";
+    case opcode::COUT_STR:
+        return "COUT_STR";
     default:
         return "UNKNOWN";
     }

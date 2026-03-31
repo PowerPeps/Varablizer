@@ -9,12 +9,12 @@ static void h_push(assembly& vm) noexcept
 /* [[Opcode::DUP, 0x03, Group::STACK]] */
 static void h_dup(assembly& vm) noexcept
 {
-    if (vm.stack_.empty())
+    if (vm.eval_.empty())
     {
         vm.halted_ = true;
         return;
     }
-    vm.push(vm.top());
+    vm.eval_.push(vm.eval_.top_value(), vm.eval_.top_type());
 }
 
 /* [[Opcode::POP, 0x04, Group::STACK]] */

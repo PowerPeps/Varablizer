@@ -137,4 +137,203 @@ static constexpr std::array<handler_t, opcode_count> handlers_ =
 #else
     &assembly::h_nop,      // 0x1A CIN (disabled)
 #endif
+    &assembly::h_nop,      // 0x1B (unmigrated)
+#if ENABLE_LOCALS
+    &assembly::h_load_local,     // 0x1C LOAD_LOCAL
+#else
+    &assembly::h_nop,      // 0x1C LOAD_LOCAL (disabled)
+#endif
+#if ENABLE_LOCALS
+    &assembly::h_store_local,     // 0x1D STORE_LOCAL
+#else
+    &assembly::h_nop,      // 0x1D STORE_LOCAL (disabled)
+#endif
+    &assembly::h_nop,      // 0x1E (unmigrated)
+    &assembly::h_nop,      // 0x1F (unmigrated)
+    &assembly::h_nop,      // 0x20 (unmigrated)
+    &assembly::h_nop,      // 0x21 (unmigrated)
+#if ENABLE_HEAP
+    &assembly::h_load_heap_8,     // 0x22 LOAD_HEAP_8
+#else
+    &assembly::h_nop,      // 0x22 LOAD_HEAP_8 (disabled)
+#endif
+#if ENABLE_HEAP
+    &assembly::h_load_heap_16,     // 0x23 LOAD_HEAP_16
+#else
+    &assembly::h_nop,      // 0x23 LOAD_HEAP_16 (disabled)
+#endif
+#if ENABLE_HEAP
+    &assembly::h_load_heap_32,     // 0x24 LOAD_HEAP_32
+#else
+    &assembly::h_nop,      // 0x24 LOAD_HEAP_32 (disabled)
+#endif
+#if ENABLE_HEAP
+    &assembly::h_load_heap_64,     // 0x25 LOAD_HEAP_64
+#else
+    &assembly::h_nop,      // 0x25 LOAD_HEAP_64 (disabled)
+#endif
+    &assembly::h_nop,      // 0x26 (unmigrated)
+#if ENABLE_HEAP
+    &assembly::h_store_heap_16,     // 0x27 STORE_HEAP_16
+#else
+    &assembly::h_nop,      // 0x27 STORE_HEAP_16 (disabled)
+#endif
+#if ENABLE_HEAP
+    &assembly::h_store_heap_32,     // 0x28 STORE_HEAP_32
+#else
+    &assembly::h_nop,      // 0x28 STORE_HEAP_32 (disabled)
+#endif
+#if ENABLE_HEAP
+    &assembly::h_store_heap_64,     // 0x29 STORE_HEAP_64
+#else
+    &assembly::h_nop,      // 0x29 STORE_HEAP_64 (disabled)
+#endif
+    &assembly::h_nop,      // 0x2A (unmigrated)
+#if ENABLE_HEAP
+    &assembly::h_deref_16,     // 0x2B DEREF_16
+#else
+    &assembly::h_nop,      // 0x2B DEREF_16 (disabled)
+#endif
+#if ENABLE_HEAP
+    &assembly::h_deref_32,     // 0x2C DEREF_32
+#else
+    &assembly::h_nop,      // 0x2C DEREF_32 (disabled)
+#endif
+#if ENABLE_HEAP
+    &assembly::h_deref_64,     // 0x2D DEREF_64
+#else
+    &assembly::h_nop,      // 0x2D DEREF_64 (disabled)
+#endif
+    &assembly::h_nop,      // 0x2E (unmigrated)
+    &assembly::h_nop,      // 0x2F (unmigrated)
+    &assembly::h_nop,      // 0x30 (unmigrated)
+    &assembly::h_nop,      // 0x31 (unmigrated)
+    &assembly::h_nop,      // 0x32 (unmigrated)
+#if ENABLE_CALL
+    &assembly::h_ret_void,     // 0x33 RET_VOID
+#else
+    &assembly::h_nop,      // 0x33 RET_VOID (disabled)
+#endif
+    &assembly::h_nop,      // 0x34 (unmigrated)
+    &assembly::h_nop,      // 0x35 (unmigrated)
+    &assembly::h_nop,      // 0x36 (unmigrated)
+    &assembly::h_nop,      // 0x37 (unmigrated)
+#if ENABLE_BITWISE
+    &assembly::h_neg,     // 0x38 NEG
+#else
+    &assembly::h_nop,      // 0x38 NEG (disabled)
+#endif
+#if ENABLE_BITWISE
+    &assembly::h_inc,     // 0x39 INC
+#else
+    &assembly::h_nop,      // 0x39 INC (disabled)
+#endif
+#if ENABLE_BITWISE
+    &assembly::h_dec,     // 0x3A DEC
+#else
+    &assembly::h_nop,      // 0x3A DEC (disabled)
+#endif
+#if ENABLE_BITWISE
+    &assembly::h_and,     // 0x3B AND
+#else
+    &assembly::h_nop,      // 0x3B AND (disabled)
+#endif
+#if ENABLE_BITWISE
+    &assembly::h_or,     // 0x3C OR
+#else
+    &assembly::h_nop,      // 0x3C OR (disabled)
+#endif
+#if ENABLE_BITWISE
+    &assembly::h_xor,     // 0x3D XOR
+#else
+    &assembly::h_nop,      // 0x3D XOR (disabled)
+#endif
+#if ENABLE_BITWISE
+    &assembly::h_not,     // 0x3E NOT
+#else
+    &assembly::h_nop,      // 0x3E NOT (disabled)
+#endif
+    &assembly::h_nop,      // 0x3F (unmigrated)
+    &assembly::h_nop,      // 0x40 (unmigrated)
+    &assembly::h_nop,      // 0x41 (unmigrated)
+    &assembly::h_nop,      // 0x42 (unmigrated)
+    &assembly::h_nop,      // 0x43 (unmigrated)
+    &assembly::h_nop,      // 0x44 (unmigrated)
+    &assembly::h_nop,      // 0x45 (unmigrated)
+    &assembly::h_nop,      // 0x46 (unmigrated)
+    &assembly::h_nop,      // 0x47 (unmigrated)
+    &assembly::h_nop,      // 0x48 (unmigrated)
+    &assembly::h_nop,      // 0x49 (unmigrated)
+    &assembly::h_nop,      // 0x4A (unmigrated)
+    &assembly::h_nop,      // 0x4B (unmigrated)
+    &assembly::h_nop,      // 0x4C (unmigrated)
+    &assembly::h_nop,      // 0x4D (unmigrated)
+    &assembly::h_nop,      // 0x4E (unmigrated)
+    &assembly::h_nop,      // 0x4F (unmigrated)
+    &assembly::h_nop,      // 0x50 (unmigrated)
+    &assembly::h_nop,      // 0x51 (unmigrated)
+    &assembly::h_nop,      // 0x52 (unmigrated)
+    &assembly::h_nop,      // 0x53 (unmigrated)
+#if ENABLE_COMPARE
+    &assembly::h_cmp_eq,     // 0x54 CMP_EQ
+#else
+    &assembly::h_nop,      // 0x54 CMP_EQ (disabled)
+#endif
+#if ENABLE_COMPARE
+    &assembly::h_cmp_neq,     // 0x55 CMP_NEQ
+#else
+    &assembly::h_nop,      // 0x55 CMP_NEQ (disabled)
+#endif
+#if ENABLE_COMPARE
+    &assembly::h_cmp_lt,     // 0x56 CMP_LT
+#else
+    &assembly::h_nop,      // 0x56 CMP_LT (disabled)
+#endif
+#if ENABLE_COMPARE
+    &assembly::h_cmp_lte,     // 0x57 CMP_LTE
+#else
+    &assembly::h_nop,      // 0x57 CMP_LTE (disabled)
+#endif
+#if ENABLE_COMPARE
+    &assembly::h_cmp_gt,     // 0x58 CMP_GT
+#else
+    &assembly::h_nop,      // 0x58 CMP_GT (disabled)
+#endif
+#if ENABLE_COMPARE
+    &assembly::h_cmp_gte,     // 0x59 CMP_GTE
+#else
+    &assembly::h_nop,      // 0x59 CMP_GTE (disabled)
+#endif
+    &assembly::h_nop,      // 0x5A (unmigrated)
+    &assembly::h_nop,      // 0x5B (unmigrated)
+    &assembly::h_nop,      // 0x5C (unmigrated)
+    &assembly::h_nop,      // 0x5D (unmigrated)
+    &assembly::h_nop,      // 0x5E (unmigrated)
+    &assembly::h_nop,      // 0x5F (unmigrated)
+#if ENABLE_FLOW
+    &assembly::h_jz,     // 0x60 JZ
+#else
+    &assembly::h_nop,      // 0x60 JZ (disabled)
+#endif
+#if ENABLE_FLOW
+    &assembly::h_jnz,     // 0x61 JNZ
+#else
+    &assembly::h_nop,      // 0x61 JNZ (disabled)
+#endif
+    &assembly::h_nop,      // 0x62 (unmigrated)
+    &assembly::h_nop,      // 0x63 (unmigrated)
+    &assembly::h_nop,      // 0x64 (unmigrated)
+    &assembly::h_nop,      // 0x65 (unmigrated)
+    &assembly::h_nop,      // 0x66 (unmigrated)
+    &assembly::h_nop,      // 0x67 (unmigrated)
+#if ENABLE_IO
+    &assembly::h_cout_char,     // 0x68 COUT_CHAR
+#else
+    &assembly::h_nop,      // 0x68 COUT_CHAR (disabled)
+#endif
+#if ENABLE_IO
+    &assembly::h_cout_str,     // 0x69 COUT_STR
+#else
+    &assembly::h_nop,      // 0x69 COUT_STR (disabled)
+#endif
 };
