@@ -3,7 +3,8 @@
 /* [[Opcode::COUT, 0x19, Group::IO]] */
 static void h_cout(assembly& vm) noexcept
 {
-    std::cout << vm.top() << std::flush;
+    if (unlikely(vm.eval_.empty())) { vm.halted_ = true; return; }
+    std::cout << vm.eval_.pop_value() << '\n';
 }
 
 /* [[Opcode::CIN, 0x1A, Group::IO]] */

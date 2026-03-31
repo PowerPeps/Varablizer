@@ -1,0 +1,20 @@
+// Test 13 — Incréments et décréments (pre/post)
+// Expected output:
+//   5
+//   6
+//   7
+//   5
+//   6
+//   5
+
+b_8 int x = 5;
+pf(x);    // 5
+x++;      // x = 6
+pf(x);    // 6
+++x;      // x = 7
+pf(x);    // 7
+
+b_8 int a = 5;
+pf(a++);  // 5 (post: valeur avant inc, a devient 6)
+pf(a);    // 6
+pf(--a);  // 5 (pre: dec d'abord, a devient 5, puis affiche)

@@ -1,0 +1,18 @@
+// Test 01 — Variables et assignation
+// Expected output:
+//   10
+//   255
+//   1000
+//   0
+
+b_8 int a = 10;
+pf(a);
+
+b_8 unsigned int u = 255;
+pf(u);
+
+b_16 int c = 1000;
+pf(c);
+
+b_32 int d = 0;
+pf(d);

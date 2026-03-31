@@ -1,0 +1,33 @@
+// Test 11 — Break et continue
+// Expected output:
+//   0
+//   1
+//   2
+//   4
+//   0
+//   1
+//   2
+//   4
+
+for (b_8 int i = 0, i < 10, i++) {
+    if (i == 3) {
+        continue;
+    }
+    if (i == 5) {
+        break;
+    }
+    pf(i);
+}
+
+b_8 int j = 0;
+while (j < 10) {
+    if (j == 3) {
+        j++;
+        continue;
+    }
+    if (j == 5) {
+        break;
+    }
+    pf(j);
+    j++;
+}

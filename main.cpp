@@ -24,6 +24,4 @@ int main(int argc, char* argv[])
     std::cerr << "stack_size=" << vm.stack_size() << " halted=" << vm.is_halted() << '\n';
 #endif
 
-    if (vm.stack_size() > 0)
-        std::cout << vm.top() << '\n';
 }

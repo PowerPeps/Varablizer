@@ -1,0 +1,16 @@
+// Test 04 — Opérateurs bitwise
+// Expected output:
+//   8
+//   14
+//   6
+//   24
+//   3
+
+b_8 int a = 12;
+b_8 int b = 10;
+
+pf(a & b);
+pf(a | b);
+pf(a ^ b);
+pf(a << 1);
+pf(a >> 2);
