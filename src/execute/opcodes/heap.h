@@ -41,7 +41,7 @@ static void h_dealloc(assembly& vm) noexcept
         vm.halted_ = true;
         return;
     }
-    vm.eval_.pop_value(); // bump allocator: memory released at VM shutdown
+    (void)vm.eval_.pop_value(); // bump allocator: memory released at VM shutdown
 }
 
 // Helper: resolve a heap address from the top of eval_

@@ -44,9 +44,6 @@ add_custom_target(generate_opcodes ALL
 )
 
 add_executable(varablizer main.cpp
-        src/compile/Lexer.cpp
-        src/compile/Lexer.h
-        src/compile/Lexer.cpp
         src/execute/assembly.h
         ${GENERATED_FILES}  # Include generated files in project
 )

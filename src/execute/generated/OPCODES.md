@@ -33,19 +33,32 @@
 | GTE_E | 0x18 | FLOW | `h_gte_e` |
 | COUT | 0x19 | IO | `h_cout` |
 | CIN | 0x1A | IO | `h_cin` |
+| PUSH_T | 0x1B | LOCALS | `h_push_t` |
 | LOAD_LOCAL | 0x1C | LOCALS | `h_load_local` |
 | STORE_LOCAL | 0x1D | LOCALS | `h_store_local` |
+| LEA_LOCAL | 0x1E | LOCALS | `h_lea_local` |
+| CAST | 0x1F | LOCALS | `h_cast` |
+| ALLOC | 0x20 | HEAP | `h_alloc` |
+| DEALLOC | 0x21 | HEAP | `h_dealloc` |
 | LOAD_HEAP_8 | 0x22 | HEAP | `h_load_heap_8` |
 | LOAD_HEAP_16 | 0x23 | HEAP | `h_load_heap_16` |
 | LOAD_HEAP_32 | 0x24 | HEAP | `h_load_heap_32` |
 | LOAD_HEAP_64 | 0x25 | HEAP | `h_load_heap_64` |
+| STORE_HEAP_8 | 0x26 | HEAP | `h_store_heap_8` |
 | STORE_HEAP_16 | 0x27 | HEAP | `h_store_heap_16` |
 | STORE_HEAP_32 | 0x28 | HEAP | `h_store_heap_32` |
 | STORE_HEAP_64 | 0x29 | HEAP | `h_store_heap_64` |
+| DEREF_8 | 0x2A | HEAP | `h_deref_8` |
 | DEREF_16 | 0x2B | HEAP | `h_deref_16` |
 | DEREF_32 | 0x2C | HEAP | `h_deref_32` |
 | DEREF_64 | 0x2D | HEAP | `h_deref_64` |
+| CALL | 0x30 | CALL | `h_call` |
+| CALL_IND | 0x31 | CALL | `h_call_ind` |
+| RET | 0x32 | CALL | `h_ret` |
 | RET_VOID | 0x33 | CALL | `h_ret_void` |
+| FRAME | 0x34 | CALL | `h_frame` |
+| CALL_CLOSURE | 0x35 | CALL | `h_call_closure` |
+| ALLOC_CLOSURE | 0x36 | CALL | `h_alloc_closure` |
 | NEG | 0x38 | BITWISE | `h_neg` |
 | INC | 0x39 | BITWISE | `h_inc` |
 | DEC | 0x3A | BITWISE | `h_dec` |
@@ -53,6 +66,8 @@
 | OR | 0x3C | BITWISE | `h_or` |
 | XOR | 0x3D | BITWISE | `h_xor` |
 | NOT | 0x3E | BITWISE | `h_not` |
+| SHL | 0x3F | BITWISE | `h_shl` |
+| SHR | 0x40 | BITWISE | `h_shr` |
 | CMP_EQ | 0x54 | COMPARE | `h_cmp_eq` |
 | CMP_NEQ | 0x55 | COMPARE | `h_cmp_neq` |
 | CMP_LT | 0x56 | COMPARE | `h_cmp_lt` |
@@ -75,10 +90,18 @@
 - **OR** (0x3C) - `h_or`
 - **XOR** (0x3D) - `h_xor`
 - **NOT** (0x3E) - `h_not`
+- **SHL** (0x3F) - `h_shl`
+- **SHR** (0x40) - `h_shr`
 
 ### CALL
 
+- **CALL** (0x30) - `h_call`
+- **CALL_IND** (0x31) - `h_call_ind`
+- **RET** (0x32) - `h_ret`
 - **RET_VOID** (0x33) - `h_ret_void`
+- **FRAME** (0x34) - `h_frame`
+- **CALL_CLOSURE** (0x35) - `h_call_closure`
+- **ALLOC_CLOSURE** (0x36) - `h_alloc_closure`
 
 ### COMPARE
 
@@ -119,13 +142,17 @@
 
 ### HEAP
 
+- **ALLOC** (0x20) - `h_alloc`
+- **DEALLOC** (0x21) - `h_dealloc`
 - **LOAD_HEAP_8** (0x22) - `h_load_heap_8`
 - **LOAD_HEAP_16** (0x23) - `h_load_heap_16`
 - **LOAD_HEAP_32** (0x24) - `h_load_heap_32`
 - **LOAD_HEAP_64** (0x25) - `h_load_heap_64`
+- **STORE_HEAP_8** (0x26) - `h_store_heap_8`
 - **STORE_HEAP_16** (0x27) - `h_store_heap_16`
 - **STORE_HEAP_32** (0x28) - `h_store_heap_32`
 - **STORE_HEAP_64** (0x29) - `h_store_heap_64`
+- **DEREF_8** (0x2A) - `h_deref_8`
 - **DEREF_16** (0x2B) - `h_deref_16`
 - **DEREF_32** (0x2C) - `h_deref_32`
 - **DEREF_64** (0x2D) - `h_deref_64`
@@ -139,8 +166,11 @@
 
 ### LOCALS
 
+- **PUSH_T** (0x1B) - `h_push_t`
 - **LOAD_LOCAL** (0x1C) - `h_load_local`
 - **STORE_LOCAL** (0x1D) - `h_store_local`
+- **LEA_LOCAL** (0x1E) - `h_lea_local`
+- **CAST** (0x1F) - `h_cast`
 
 ### MATH
 
@@ -158,4 +188,4 @@
 
 
 ---
-*Total opcodes: 57*
+*Total opcodes: 72*

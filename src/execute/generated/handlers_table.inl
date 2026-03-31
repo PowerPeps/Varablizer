@@ -137,7 +137,11 @@ static constexpr std::array<handler_t, opcode_count> handlers_ =
 #else
     &assembly::h_nop,      // 0x1A CIN (disabled)
 #endif
-    &assembly::h_nop,      // 0x1B (unmigrated)
+#if ENABLE_LOCALS
+    &assembly::h_push_t,     // 0x1B PUSH_T
+#else
+    &assembly::h_nop,      // 0x1B PUSH_T (disabled)
+#endif
 #if ENABLE_LOCALS
     &assembly::h_load_local,     // 0x1C LOAD_LOCAL
 #else
@@ -148,10 +152,26 @@ static constexpr std::array<handler_t, opcode_count> handlers_ =
 #else
     &assembly::h_nop,      // 0x1D STORE_LOCAL (disabled)
 #endif
-    &assembly::h_nop,      // 0x1E (unmigrated)
-    &assembly::h_nop,      // 0x1F (unmigrated)
-    &assembly::h_nop,      // 0x20 (unmigrated)
-    &assembly::h_nop,      // 0x21 (unmigrated)
+#if ENABLE_LOCALS
+    &assembly::h_lea_local,     // 0x1E LEA_LOCAL
+#else
+    &assembly::h_nop,      // 0x1E LEA_LOCAL (disabled)
+#endif
+#if ENABLE_LOCALS
+    &assembly::h_cast,     // 0x1F CAST
+#else
+    &assembly::h_nop,      // 0x1F CAST (disabled)
+#endif
+#if ENABLE_HEAP
+    &assembly::h_alloc,     // 0x20 ALLOC
+#else
+    &assembly::h_nop,      // 0x20 ALLOC (disabled)
+#endif
+#if ENABLE_HEAP
+    &assembly::h_dealloc,     // 0x21 DEALLOC
+#else
+    &assembly::h_nop,      // 0x21 DEALLOC (disabled)
+#endif
 #if ENABLE_HEAP
     &assembly::h_load_heap_8,     // 0x22 LOAD_HEAP_8
 #else
@@ -172,7 +192,11 @@ static constexpr std::array<handler_t, opcode_count> handlers_ =
 #else
     &assembly::h_nop,      // 0x25 LOAD_HEAP_64 (disabled)
 #endif
-    &assembly::h_nop,      // 0x26 (unmigrated)
+#if ENABLE_HEAP
+    &assembly::h_store_heap_8,     // 0x26 STORE_HEAP_8
+#else
+    &assembly::h_nop,      // 0x26 STORE_HEAP_8 (disabled)
+#endif
 #if ENABLE_HEAP
     &assembly::h_store_heap_16,     // 0x27 STORE_HEAP_16
 #else
@@ -188,7 +212,11 @@ static constexpr std::array<handler_t, opcode_count> handlers_ =
 #else
     &assembly::h_nop,      // 0x29 STORE_HEAP_64 (disabled)
 #endif
-    &assembly::h_nop,      // 0x2A (unmigrated)
+#if ENABLE_HEAP
+    &assembly::h_deref_8,     // 0x2A DEREF_8
+#else
+    &assembly::h_nop,      // 0x2A DEREF_8 (disabled)
+#endif
 #if ENABLE_HEAP
     &assembly::h_deref_16,     // 0x2B DEREF_16
 #else
@@ -206,17 +234,41 @@ static constexpr std::array<handler_t, opcode_count> handlers_ =
 #endif
     &assembly::h_nop,      // 0x2E (unmigrated)
     &assembly::h_nop,      // 0x2F (unmigrated)
-    &assembly::h_nop,      // 0x30 (unmigrated)
-    &assembly::h_nop,      // 0x31 (unmigrated)
-    &assembly::h_nop,      // 0x32 (unmigrated)
+#if ENABLE_CALL
+    &assembly::h_call,     // 0x30 CALL
+#else
+    &assembly::h_nop,      // 0x30 CALL (disabled)
+#endif
+#if ENABLE_CALL
+    &assembly::h_call_ind,     // 0x31 CALL_IND
+#else
+    &assembly::h_nop,      // 0x31 CALL_IND (disabled)
+#endif
+#if ENABLE_CALL
+    &assembly::h_ret,     // 0x32 RET
+#else
+    &assembly::h_nop,      // 0x32 RET (disabled)
+#endif
 #if ENABLE_CALL
     &assembly::h_ret_void,     // 0x33 RET_VOID
 #else
     &assembly::h_nop,      // 0x33 RET_VOID (disabled)
 #endif
-    &assembly::h_nop,      // 0x34 (unmigrated)
-    &assembly::h_nop,      // 0x35 (unmigrated)
-    &assembly::h_nop,      // 0x36 (unmigrated)
+#if ENABLE_CALL
+    &assembly::h_frame,     // 0x34 FRAME
+#else
+    &assembly::h_nop,      // 0x34 FRAME (disabled)
+#endif
+#if ENABLE_CALL
+    &assembly::h_call_closure,     // 0x35 CALL_CLOSURE
+#else
+    &assembly::h_nop,      // 0x35 CALL_CLOSURE (disabled)
+#endif
+#if ENABLE_CALL
+    &assembly::h_alloc_closure,     // 0x36 ALLOC_CLOSURE
+#else
+    &assembly::h_nop,      // 0x36 ALLOC_CLOSURE (disabled)
+#endif
     &assembly::h_nop,      // 0x37 (unmigrated)
 #if ENABLE_BITWISE
     &assembly::h_neg,     // 0x38 NEG
@@ -253,8 +305,16 @@ static constexpr std::array<handler_t, opcode_count> handlers_ =
 #else
     &assembly::h_nop,      // 0x3E NOT (disabled)
 #endif
-    &assembly::h_nop,      // 0x3F (unmigrated)
-    &assembly::h_nop,      // 0x40 (unmigrated)
+#if ENABLE_BITWISE
+    &assembly::h_shl,     // 0x3F SHL
+#else
+    &assembly::h_nop,      // 0x3F SHL (disabled)
+#endif
+#if ENABLE_BITWISE
+    &assembly::h_shr,     // 0x40 SHR
+#else
+    &assembly::h_nop,      // 0x40 SHR (disabled)
+#endif
     &assembly::h_nop,      // 0x41 (unmigrated)
     &assembly::h_nop,      // 0x42 (unmigrated)
     &assembly::h_nop,      // 0x43 (unmigrated)

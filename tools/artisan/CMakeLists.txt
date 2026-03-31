@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.15)
 
-add_executable(artisan main.cpp)
+add_executable(artisan
+    main.cpp
+    ../../src/compile/lexer.cpp
+    ../../src/compile/parser.cpp
+    ../../src/compile/codegen.cpp
+    ../../src/compile/compiler.cpp
+)
+
+target_include_directories(artisan PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
 target_compile_features(artisan PRIVATE cxx_std_20)
 

@@ -2,6 +2,7 @@
 #include "commands/make_opcode.h"
 #include "commands/build_execute.h"
 #include "commands/execute.h"
+#include "commands/compile.h"
 
 #include <iostream>
 #include <memory>
@@ -41,9 +42,10 @@ int main(int argc, char** argv)
     fs::path project_root = exe_path.parent_path();
 
     std::map<std::string, std::unique_ptr<artisan::Command>> commands;
-    commands["make:opcode"] = std::make_unique<artisan::MakeOpcodeCommand>(project_root);
+    commands["make:opcode"]   = std::make_unique<artisan::MakeOpcodeCommand>(project_root);
     commands["build:execute"] = std::make_unique<artisan::BuildExecuteCommand>(project_root);
-    commands["execute"] = std::make_unique<artisan::ExecuteCommand>(project_root);
+    commands["execute"]       = std::make_unique<artisan::ExecuteCommand>(project_root);
+    commands["compile"]       = std::make_unique<artisan::CompileCommand>(project_root);
 
     if (argc < 2)
     {
