@@ -1,0 +1,16 @@
+// Test 17 — Pointeurs : opérations composées
+// Expected output:
+//   10
+//   15
+//   5
+
+b_8 int x = 10;
+b_8 int* p = &x;
+
+pf(*p);
+
+*p += 5;
+pf(*p);
+
+*p -= 10;
+pf(*p);

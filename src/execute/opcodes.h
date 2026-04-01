@@ -89,6 +89,11 @@ namespace execute
         DEREF_16     = 0x2B,  // pop tagged_ptr, read 2 bytes from region
         DEREF_32     = 0x2C,  // pop tagged_ptr, read 4 bytes from region
         DEREF_64     = 0x2D,  // pop tagged_ptr, read 8 bytes from region
+        STORE_DEREF_8  = 0x2E, // stack: ..., addr, value → write 1 byte through tagged ptr
+        STORE_DEREF_16 = 0x2F, // stack: ..., addr, value → write 2 bytes through tagged ptr
+
+        STORE_DEREF_32 = 0x50, // stack: ..., addr, value → write 4 bytes through tagged ptr
+        STORE_DEREF_64 = 0x51, // stack: ..., addr, value → write 8 bytes through tagged ptr
 
         // CALL (0x30-0x36)
         CALL         = 0x30,  // operand = target_ip | (argc << 32) | (total_locals << 48)

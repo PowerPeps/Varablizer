@@ -24,6 +24,7 @@ const std::unordered_map<std::string, TokenType> Lexer::keywords_ = {
     {"unsigned", TokenType::KW_UNSIGNED},
     {"signed",   TokenType::KW_SIGNED},
     {"nop",      TokenType::KW_NOP},
+    {"null",     TokenType::KW_NULL},
 };
 
 Lexer::Lexer(std::string_view source, std::string filename)
@@ -180,6 +181,8 @@ Token Lexer::scan_token()
         case ',': return make(TokenType::COMMA,     ",");
         case '#': return make(TokenType::HASH,      "#");
         case '~': return make(TokenType::TILDE,     "~");
+        case '[': return make(TokenType::LBRACKET,  "[");
+        case ']': return make(TokenType::RBRACKET,  "]");
 
         case '+':
             if (match('+')) return make(TokenType::PLUS_PLUS,   "++");

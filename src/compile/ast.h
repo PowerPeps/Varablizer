@@ -71,6 +71,29 @@ namespace compile
         NodePtr     value;
     };
 
+    // null literal
+    struct NullLit : AstNode {};
+
+    // &varname — address of a local variable
+    struct AddrOf : AstNode
+    {
+        std::string name;
+    };
+
+    // *expr — dereference a pointer (read)
+    struct DerefExpr : AstNode
+    {
+        NodePtr ptr_expr;
+    };
+
+    // *ptr op= expr — write through pointer
+    struct DerefAssign : AstNode
+    {
+        NodePtr     ptr_expr;   // the pointer expression (e.g. VarRef)
+        std::string op;         // "=", "+=", "-=", etc.
+        NodePtr     value;
+    };
+
     // Ternary: cond ? then : else
     struct TernaryExpr : AstNode
     {
@@ -86,12 +109,14 @@ namespace compile
         std::vector<NodePtr> stmts;
     };
 
-    // Variable declaration: b_8 int x = expr;
+    // Variable declaration: b_8 int x = expr;  or  b_8 int* ptr = expr;
     struct VarDecl : AstNode
     {
         std::string name;
         vtype       type;
-        NodePtr     init;   // nullptr if no initializer
+        bool        is_pointer = false;
+        vtype       pointee;    // valid when is_pointer == true
+        NodePtr     init;       // nullptr if no initializer
     };
 
     // Expression used as a statement: f(); i++;
@@ -145,12 +170,20 @@ namespace compile
 
     // ── Top-level ─────────────────────────────────────────────────────────────
 
+    struct ParamInfo
+    {
+        std::string name;
+        vtype       type;
+        bool        is_pointer = false;
+        vtype       pointee;    // valid when is_pointer == true
+    };
+
     struct FunctionDecl : AstNode
     {
         std::string name;
         vtype       return_type;
         bool        is_void = false;
-        std::vector<std::pair<std::string, vtype>> params;
+        std::vector<ParamInfo> params;
         std::unique_ptr<Block> body;
     };
 

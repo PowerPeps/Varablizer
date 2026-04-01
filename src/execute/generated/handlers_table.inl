@@ -232,8 +232,16 @@ static constexpr std::array<handler_t, opcode_count> handlers_ =
 #else
     &assembly::h_nop,      // 0x2D DEREF_64 (disabled)
 #endif
-    &assembly::h_nop,      // 0x2E (unmigrated)
-    &assembly::h_nop,      // 0x2F (unmigrated)
+#if ENABLE_HEAP
+    &assembly::h_store_deref_8,     // 0x2E STORE_DEREF_8
+#else
+    &assembly::h_nop,      // 0x2E STORE_DEREF_8 (disabled)
+#endif
+#if ENABLE_HEAP
+    &assembly::h_store_deref_16,     // 0x2F STORE_DEREF_16
+#else
+    &assembly::h_nop,      // 0x2F STORE_DEREF_16 (disabled)
+#endif
 #if ENABLE_CALL
     &assembly::h_call,     // 0x30 CALL
 #else
@@ -330,8 +338,16 @@ static constexpr std::array<handler_t, opcode_count> handlers_ =
     &assembly::h_nop,      // 0x4D (unmigrated)
     &assembly::h_nop,      // 0x4E (unmigrated)
     &assembly::h_nop,      // 0x4F (unmigrated)
-    &assembly::h_nop,      // 0x50 (unmigrated)
-    &assembly::h_nop,      // 0x51 (unmigrated)
+#if ENABLE_HEAP
+    &assembly::h_store_deref_32,     // 0x50 STORE_DEREF_32
+#else
+    &assembly::h_nop,      // 0x50 STORE_DEREF_32 (disabled)
+#endif
+#if ENABLE_HEAP
+    &assembly::h_store_deref_64,     // 0x51 STORE_DEREF_64
+#else
+    &assembly::h_nop,      // 0x51 STORE_DEREF_64 (disabled)
+#endif
     &assembly::h_nop,      // 0x52 (unmigrated)
     &assembly::h_nop,      // 0x53 (unmigrated)
 #if ENABLE_COMPARE

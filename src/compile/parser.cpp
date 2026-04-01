@@ -103,6 +103,16 @@ Parser::TypeResult Parser::parse_type()
     TypeResult r;
     r.is_void = false;
     r.type    = resolve_vtype(size_spec, is_unsigned, base);
+
+    // Optional pointer: b_8 int*
+    if (check(TokenType::STAR))
+    {
+        consume();
+        r.is_pointer = true;
+        r.pointee    = r.type;
+        r.type       = execute::types::PTR;
+    }
+
     return r;
 }
 
@@ -173,7 +183,12 @@ std::unique_ptr<FunctionDecl> Parser::parse_function(TypeResult ret, const Token
         do {
             TypeResult ptype = parse_type();
             Token pname      = expect(TokenType::IDENT);
-            fn->params.emplace_back(pname.lexeme, ptype.type);
+            ParamInfo pi;
+            pi.name       = pname.lexeme;
+            pi.type       = ptype.type;
+            pi.is_pointer = ptype.is_pointer;
+            pi.pointee    = ptype.pointee;
+            fn->params.push_back(std::move(pi));
         } while (match(TokenType::COMMA));
     }
 
@@ -267,10 +282,12 @@ NodePtr Parser::parse_stmt()
 
 NodePtr Parser::parse_var_decl(TypeResult type_res, const Token& name_tok)
 {
-    auto decl  = std::make_unique<VarDecl>();
-    decl->loc  = name_tok.loc;
-    decl->name = name_tok.lexeme;
-    decl->type = type_res.type;
+    auto decl       = std::make_unique<VarDecl>();
+    decl->loc       = name_tok.loc;
+    decl->name      = name_tok.lexeme;
+    decl->type      = type_res.type;
+    decl->is_pointer = type_res.is_pointer;
+    decl->pointee   = type_res.pointee;
 
     if (check(TokenType::ASSIGN) || check(TokenType::COLON_ASSIGN))
     {
@@ -448,16 +465,21 @@ NodePtr Parser::parse_assignment()
 
     NodePtr node = parse_ternary();
 
+    // Helper lambda: check if current token is any assignment operator
+    auto is_assign_op = [&]() {
+        TokenType t = peek().type;
+        return t == TokenType::ASSIGN      ||
+               t == TokenType::PLUS_ASSIGN || t == TokenType::MINUS_ASSIGN ||
+               t == TokenType::STAR_ASSIGN || t == TokenType::SLASH_ASSIGN ||
+               t == TokenType::PERCENT_ASSIGN ||
+               t == TokenType::AMP_ASSIGN  || t == TokenType::PIPE_ASSIGN  ||
+               t == TokenType::CARET_ASSIGN;
+    };
+
     // If the result is a VarRef, check for assignment operator that follows
     if (auto* vr = node_cast<VarRef>(node.get()))
     {
-        TokenType t = peek().type;
-        if (t == TokenType::ASSIGN      ||
-            t == TokenType::PLUS_ASSIGN || t == TokenType::MINUS_ASSIGN ||
-            t == TokenType::STAR_ASSIGN || t == TokenType::SLASH_ASSIGN ||
-            t == TokenType::PERCENT_ASSIGN ||
-            t == TokenType::AMP_ASSIGN  || t == TokenType::PIPE_ASSIGN  ||
-            t == TokenType::CARET_ASSIGN)
+        if (is_assign_op())
         {
             std::string op = consume().lexeme;
             auto assign    = std::make_unique<AssignExpr>();
@@ -466,6 +488,21 @@ NodePtr Parser::parse_assignment()
             assign->op     = op;
             assign->value  = parse_expr(); // right-associative
             return assign;
+        }
+    }
+
+    // If the result is a DerefExpr (*ptr), check for assignment operator
+    if (auto* de = node_cast<DerefExpr>(node.get()))
+    {
+        if (is_assign_op())
+        {
+            std::string op = consume().lexeme;
+            auto da        = std::make_unique<DerefAssign>();
+            da->loc        = node->loc;
+            da->ptr_expr   = std::move(de->ptr_expr); // steal inner ptr
+            da->op         = op;
+            da->value      = parse_expr();
+            return da;
         }
     }
 
@@ -624,6 +661,27 @@ NodePtr Parser::parse_unary()
         return u;
     }
 
+    // Address-of: &varname
+    if (check(TokenType::AMP))
+    {
+        SourceLocation l = consume().loc; // consume '&'
+        Token name_tok   = expect(TokenType::IDENT);
+        auto ao  = std::make_unique<AddrOf>();
+        ao->loc  = l;
+        ao->name = name_tok.lexeme;
+        return ao;
+    }
+
+    // Dereference: *expr
+    if (check(TokenType::STAR))
+    {
+        SourceLocation l = consume().loc; // consume '*'
+        auto de          = std::make_unique<DerefExpr>();
+        de->loc          = l;
+        de->ptr_expr     = parse_unary(); // recursive: handles **ptr
+        return de;
+    }
+
     return parse_postfix();
 }
 
@@ -660,12 +718,27 @@ NodePtr Parser::parse_primary()
         return lit;
     }
 
-    // Builtin calls: pf, p, dd
+    // null literal
+    if (t.type == TokenType::KW_NULL)
+    {
+        auto n = std::make_unique<NullLit>();
+        n->loc = consume().loc;
+        return n;
+    }
+
+    // Builtin calls: pf, p, dd, malloc, free — only when followed by '('
     if (t.type == TokenType::IDENT &&
-        (t.lexeme == "pf" || t.lexeme == "p" || t.lexeme == "dd"))
+        (t.lexeme == "pf" || t.lexeme == "p" || t.lexeme == "dd" ||
+         t.lexeme == "malloc" || t.lexeme == "free"))
     {
         Token name_tok = consume();
-        return parse_call(name_tok, /*is_builtin=*/true);
+        if (check(TokenType::LPAREN))
+            return parse_call(name_tok, /*is_builtin=*/true);
+        // Not a call — treat as a regular variable reference
+        auto vr  = std::make_unique<VarRef>();
+        vr->loc  = name_tok.loc;
+        vr->name = name_tok.lexeme;
+        return vr;
     }
 
     // Identifier: variable or function call

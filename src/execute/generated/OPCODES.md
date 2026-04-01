@@ -52,6 +52,8 @@
 | DEREF_16 | 0x2B | HEAP | `h_deref_16` |
 | DEREF_32 | 0x2C | HEAP | `h_deref_32` |
 | DEREF_64 | 0x2D | HEAP | `h_deref_64` |
+| STORE_DEREF_8 | 0x2E | HEAP | `h_store_deref_8` |
+| STORE_DEREF_16 | 0x2F | HEAP | `h_store_deref_16` |
 | CALL | 0x30 | CALL | `h_call` |
 | CALL_IND | 0x31 | CALL | `h_call_ind` |
 | RET | 0x32 | CALL | `h_ret` |
@@ -68,6 +70,8 @@
 | NOT | 0x3E | BITWISE | `h_not` |
 | SHL | 0x3F | BITWISE | `h_shl` |
 | SHR | 0x40 | BITWISE | `h_shr` |
+| STORE_DEREF_32 | 0x50 | HEAP | `h_store_deref_32` |
+| STORE_DEREF_64 | 0x51 | HEAP | `h_store_deref_64` |
 | CMP_EQ | 0x54 | COMPARE | `h_cmp_eq` |
 | CMP_NEQ | 0x55 | COMPARE | `h_cmp_neq` |
 | CMP_LT | 0x56 | COMPARE | `h_cmp_lt` |
@@ -156,6 +160,10 @@
 - **DEREF_16** (0x2B) - `h_deref_16`
 - **DEREF_32** (0x2C) - `h_deref_32`
 - **DEREF_64** (0x2D) - `h_deref_64`
+- **STORE_DEREF_8** (0x2E) - `h_store_deref_8`
+- **STORE_DEREF_16** (0x2F) - `h_store_deref_16`
+- **STORE_DEREF_32** (0x50) - `h_store_deref_32`
+- **STORE_DEREF_64** (0x51) - `h_store_deref_64`
 
 ### IO
 
@@ -188,4 +196,4 @@
 
 
 ---
-*Total opcodes: 72*
+*Total opcodes: 76*

@@ -35,6 +35,7 @@ namespace compile
         KW_UNSIGNED,
         KW_SIGNED,
         KW_NOP,
+        KW_NULL,        // "null"
 
         // ── Arithmetic operators ──────────────────────────────────────────────
         PLUS,           // +
@@ -92,6 +93,8 @@ namespace compile
         SEMICOLON,      // ;
         COMMA,          // ,
         HASH,           // #
+        LBRACKET,       // [
+        RBRACKET,       // ]
 
         // ── Special ───────────────────────────────────────────────────────────
         EOF_TOK,
@@ -131,6 +134,7 @@ namespace compile
             case TokenType::KW_UNSIGNED:    return "'unsigned'";
             case TokenType::KW_SIGNED:      return "'signed'";
             case TokenType::KW_NOP:         return "'nop'";
+            case TokenType::KW_NULL:        return "'null'";
             case TokenType::PLUS:           return "'+'";
             case TokenType::MINUS:          return "'-'";
             case TokenType::STAR:           return "'*'";
@@ -172,6 +176,8 @@ namespace compile
             case TokenType::SEMICOLON:      return "';'";
             case TokenType::COMMA:          return "','";
             case TokenType::HASH:           return "'#'";
+            case TokenType::LBRACKET:       return "'['";
+            case TokenType::RBRACKET:       return "']'";
             case TokenType::EOF_TOK:        return "end of file";
         }
         return "unknown";

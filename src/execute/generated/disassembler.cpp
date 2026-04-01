@@ -101,6 +101,10 @@ std::string_view opcode_to_string(opcode op) noexcept
         return "DEREF_32";
     case opcode::DEREF_64:
         return "DEREF_64";
+    case opcode::STORE_DEREF_8:
+        return "STORE_DEREF_8";
+    case opcode::STORE_DEREF_16:
+        return "STORE_DEREF_16";
     case opcode::CALL:
         return "CALL";
     case opcode::CALL_IND:
@@ -133,6 +137,10 @@ std::string_view opcode_to_string(opcode op) noexcept
         return "SHL";
     case opcode::SHR:
         return "SHR";
+    case opcode::STORE_DEREF_32:
+        return "STORE_DEREF_32";
+    case opcode::STORE_DEREF_64:
+        return "STORE_DEREF_64";
     case opcode::CMP_EQ:
         return "CMP_EQ";
     case opcode::CMP_NEQ:

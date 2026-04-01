@@ -4,6 +4,7 @@
 #include "ast.h"
 #include "symbol_table.h"
 #include "error.h"
+#include "type_resolver.h"
 #include "../execute/opcodes.h"
 
 #include <vector>

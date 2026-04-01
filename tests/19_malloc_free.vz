@@ -1,0 +1,16 @@
+// Test 19 — malloc / free
+// Expected output:
+//   100
+//   200
+//   1
+
+int* buf = malloc(8);
+
+*buf = 100;
+pf(*buf);
+
+*buf = 200;
+pf(*buf);
+
+free(buf);
+pf(1);

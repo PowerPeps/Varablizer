@@ -176,7 +176,13 @@ void CodeGen::gen_function(const FunctionDecl& fn)
 
     // Bind parameters to slots 0..argc-1
     for (uint32_t i = 0; i < fn.params.size(); ++i)
-        syms_.define_at(fn.params[i].first, fn.params[i].second, i, true);
+    {
+        const auto& p = fn.params[i];
+        if (p.is_pointer)
+            syms_.define_ptr_at(p.name, p.pointee, i, true);
+        else
+            syms_.define_at(p.name, p.type, i, true);
+    }
 
     // Set next_slot to argc so that local vars start after params
     syms_.set_next_slot(static_cast<uint32_t>(fn.params.size()));
@@ -215,7 +221,10 @@ void CodeGen::gen_stmt(const AstNode& node)
     if (auto* vd = node_cast<VarDecl>(&node))
     {
         // Allocate slot
-        syms_.define(vd->name, vd->type);
+        if (vd->is_pointer)
+            syms_.define_ptr(vd->name, vd->pointee);
+        else
+            syms_.define(vd->name, vd->type);
         Symbol* sym = syms_.lookup(vd->name);
         assert(sym);
 
@@ -229,23 +238,49 @@ void CodeGen::gen_stmt(const AstNode& node)
 
     if (auto* es = node_cast<ExprStmt>(&node))
     {
-        gen_expr(*es->expr);
-        // Pop result if any (expressions as statements produce a value we discard)
-        // Most expressions leave a value on the stack; pop it
-        // Exception: assignments already store and don't push an extra value
-        // We'll always emit POP for safety — assignments in .vz return void
-        if (!node_cast<AssignExpr>(es->expr.get()) &&
-            !node_cast<UnaryExpr>(es->expr.get()))  // ++ -- handled carefully
+        // Special case: ~ptr; is a destructor/free — emit DEALLOC directly
+        if (auto* ue = node_cast<UnaryExpr>(es->expr.get()))
         {
-            // CallExpr as stmt: if it returns a value, pop it
-            if (node_cast<CallExpr>(es->expr.get()))
+            if (ue->op == "~")
             {
-                auto* ce = node_cast<CallExpr>(es->expr.get());
-                auto it = functions_.find(ce->callee);
-                if (it != functions_.end() && !it->second.is_void)
-                    emit(opcode::POP);
+                if (auto* vr = node_cast<VarRef>(ue->operand.get()))
+                {
+                    Symbol* sym = syms_.lookup(vr->name);
+                    if (sym && sym->is_pointer)
+                    {
+                        emit(opcode::LOAD_LOCAL, static_cast<int64_t>(sym->slot));
+                        emit(opcode::DEALLOC);
+                        return;
+                    }
+                }
             }
         }
+
+        gen_expr(*es->expr);
+
+        // Decide whether to pop the result
+        const AstNode* expr = es->expr.get();
+        bool leaves_value = true;
+        if (node_cast<AssignExpr>(expr))      leaves_value = false;
+        if (node_cast<DerefAssign>(expr))     leaves_value = false;
+        if (node_cast<UnaryExpr>(expr))       leaves_value = false; // ++ -- handled in gen_expr
+        if (auto* ce = node_cast<CallExpr>(expr))
+        {
+            // builtin free/dd/pf don't leave a value; user void functions don't either
+            if (ce->callee == "free" || ce->callee == "pf" ||
+                ce->callee == "p"   || ce->callee == "dd")
+                leaves_value = false;
+            else
+            {
+                auto it = functions_.find(ce->callee);
+                if (it != functions_.end() && it->second.is_void)
+                    leaves_value = false;
+                // malloc and unknown builtins leave a value → pop it
+            }
+        }
+
+        if (leaves_value)
+            emit(opcode::POP);
         return;
     }
 
@@ -325,7 +360,10 @@ void CodeGen::gen_stmt(const AstNode& node)
         {
             if (auto* vd = node_cast<VarDecl>(fs->init.get()))
             {
-                syms_.define(vd->name, vd->type);
+                if (vd->is_pointer)
+                    syms_.define_ptr(vd->name, vd->pointee);
+                else
+                    syms_.define(vd->name, vd->type);
                 Symbol* sym = syms_.lookup(vd->name);
                 assert(sym);
                 if (vd->init)
@@ -440,6 +478,67 @@ void CodeGen::gen_stmt(const AstNode& node)
 
 void CodeGen::gen_expr(const AstNode& node)
 {
+    // null literal → push 0 (untagged, no valid region)
+    if (node_cast<NullLit>(&node))
+    {
+        emit(opcode::PUSH, 0);
+        return;
+    }
+
+    // &varname → LEA_LOCAL slot
+    if (auto* ao = node_cast<AddrOf>(&node))
+    {
+        Symbol* sym = syms_.lookup(ao->name);
+        if (!sym) error("undefined variable '" + ao->name + "'", ao->loc);
+        emit(opcode::LEA_LOCAL, static_cast<int64_t>(sym->slot));
+        return;
+    }
+
+    // *expr → push ptr, DEREF_N (size determined by pointee type)
+    if (auto* de = node_cast<DerefExpr>(&node))
+    {
+        // Determine pointee type from the pointer expression if it's a known symbol
+        vtype pointee = execute::types::I64; // default: 64-bit
+        if (auto* vr = node_cast<VarRef>(de->ptr_expr.get()))
+        {
+            Symbol* sym = syms_.lookup(vr->name);
+            if (sym && sym->is_pointer) pointee = sym->pointee;
+        }
+        gen_expr(*de->ptr_expr);
+        emit(deref_opcode(pointee));
+        return;
+    }
+
+    // *ptr op= expr → write through pointer
+    if (auto* da = node_cast<DerefAssign>(&node))
+    {
+        vtype pointee = execute::types::I64;
+        if (auto* vr = node_cast<VarRef>(da->ptr_expr.get()))
+        {
+            Symbol* sym = syms_.lookup(vr->name);
+            if (sym && sym->is_pointer) pointee = sym->pointee;
+        }
+
+        if (da->op == "=")
+        {
+            gen_expr(*da->ptr_expr); // push addr
+            gen_expr(*da->value);    // push value
+            emit(store_deref_opcode(pointee));
+        }
+        else
+        {
+            // Compound: push addr (for store), push addr again (for load), DEREF, rhs, op, STORE
+            gen_expr(*da->ptr_expr); // addr (for store — sits at bottom)
+            gen_expr(*da->ptr_expr); // addr (for load)
+            emit(deref_opcode(pointee));       // pop load-addr, push old value
+            gen_expr(*da->value);
+            gen_assign_op(da->op);
+            // stack: [store_addr, new_value]
+            emit(store_deref_opcode(pointee));
+        }
+        return;
+    }
+
     if (auto* lit = node_cast<IntLit>(&node))
     {
         // Use PUSH_T: byte 0 = vtype.bits, bytes 1-7 = 56-bit value
@@ -573,9 +672,25 @@ void CodeGen::gen_expr(const AstNode& node)
 
     if (auto* ce = node_cast<CallExpr>(&node))
     {
-        // Builtin: pf, p, dd
+        // Builtin: pf, p, dd, malloc, free
         if (ce->is_builtin || ce->callee == "pf" || ce->callee == "p" || ce->callee == "dd")
         {
+            if (ce->callee == "malloc")
+            {
+                if (ce->args.size() != 1)
+                    error("malloc expects 1 argument", ce->loc);
+                gen_expr(*ce->args[0]);
+                emit(opcode::ALLOC);
+                return;
+            }
+            if (ce->callee == "free")
+            {
+                if (ce->args.size() != 1)
+                    error("free expects 1 argument", ce->loc);
+                gen_expr(*ce->args[0]);
+                emit(opcode::DEALLOC);
+                return;
+            }
             for (const auto& arg : ce->args)
                 gen_expr(*arg);
             if (ce->callee == "dd")

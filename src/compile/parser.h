@@ -28,7 +28,13 @@ namespace compile
         bool         match(TokenType type);
 
         // ── Type parsing ───────────────────────────────────────────────────
-        struct TypeResult { vtype type; bool is_void; };
+        struct TypeResult
+        {
+            vtype type;
+            bool  is_void    = false;
+            bool  is_pointer = false;
+            vtype pointee;   // valid when is_pointer == true
+        };
         bool         is_type_start();
         TypeResult   parse_type();
 

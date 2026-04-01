@@ -301,4 +301,110 @@ static void h_deref_64(assembly& vm) noexcept
     vm.eval_.push(result, types::I64);
 }
 
+/* [[Opcode::STORE_DEREF_8, 0x2E, Group::HEAP]] */
+// Stack order: ..., addr, value (value on top)
+// Writes 1 byte through a tagged pointer (HEAP or LOCALS region)
+static void h_store_deref_8(assembly& vm) noexcept
+{
+    if (unlikely(vm.eval_.size() < 2)) { vm.halted_ = true; return; }
+    const auto val = static_cast<std::uint8_t>(vm.eval_.pop_value() & 0xFF);
+    const value_t raw = vm.eval_.pop_value();
+    switch (tagged_ptr::region(raw))
+    {
+        case ptr_region::HEAP:
+        {
+            const std::uint64_t addr = tagged_ptr::offset(raw);
+            if (unlikely(addr + 1 > vm.heap_.size())) { vm.halted_ = true; return; }
+            vm.heap_[addr] = val;
+            break;
+        }
+        case ptr_region::LOCALS:
+        {
+            const std::uint64_t slot = tagged_ptr::offset(raw);
+            if (unlikely(slot >= vm.local_vals_.size())) { vm.halted_ = true; return; }
+            vm.local_vals_[slot] = (vm.local_vals_[slot] & ~0xFFLL) | val;
+            break;
+        }
+        default: vm.halted_ = true; return;
+    }
+}
+
+/* [[Opcode::STORE_DEREF_16, 0x2F, Group::HEAP]] */
+static void h_store_deref_16(assembly& vm) noexcept
+{
+    if (unlikely(vm.eval_.size() < 2)) { vm.halted_ = true; return; }
+    const auto val = static_cast<std::uint16_t>(vm.eval_.pop_value() & 0xFFFF);
+    const value_t raw = vm.eval_.pop_value();
+    switch (tagged_ptr::region(raw))
+    {
+        case ptr_region::HEAP:
+        {
+            const std::uint64_t addr = tagged_ptr::offset(raw);
+            if (unlikely(addr + 2 > vm.heap_.size())) { vm.halted_ = true; return; }
+            std::memcpy(vm.heap_.data() + addr, &val, 2);
+            break;
+        }
+        case ptr_region::LOCALS:
+        {
+            const std::uint64_t slot = tagged_ptr::offset(raw);
+            if (unlikely(slot >= vm.local_vals_.size())) { vm.halted_ = true; return; }
+            vm.local_vals_[slot] = (vm.local_vals_[slot] & ~0xFFFFLL) | val;
+            break;
+        }
+        default: vm.halted_ = true; return;
+    }
+}
+
+/* [[Opcode::STORE_DEREF_32, 0x50, Group::HEAP]] */
+static void h_store_deref_32(assembly& vm) noexcept
+{
+    if (unlikely(vm.eval_.size() < 2)) { vm.halted_ = true; return; }
+    const auto val = static_cast<std::uint32_t>(vm.eval_.pop_value() & 0xFFFF'FFFF);
+    const value_t raw = vm.eval_.pop_value();
+    switch (tagged_ptr::region(raw))
+    {
+        case ptr_region::HEAP:
+        {
+            const std::uint64_t addr = tagged_ptr::offset(raw);
+            if (unlikely(addr + 4 > vm.heap_.size())) { vm.halted_ = true; return; }
+            std::memcpy(vm.heap_.data() + addr, &val, 4);
+            break;
+        }
+        case ptr_region::LOCALS:
+        {
+            const std::uint64_t slot = tagged_ptr::offset(raw);
+            if (unlikely(slot >= vm.local_vals_.size())) { vm.halted_ = true; return; }
+            vm.local_vals_[slot] = (vm.local_vals_[slot] & ~0xFFFF'FFFFLL) | val;
+            break;
+        }
+        default: vm.halted_ = true; return;
+    }
+}
+
+/* [[Opcode::STORE_DEREF_64, 0x51, Group::HEAP]] */
+static void h_store_deref_64(assembly& vm) noexcept
+{
+    if (unlikely(vm.eval_.size() < 2)) { vm.halted_ = true; return; }
+    const value_t val = vm.eval_.pop_value();
+    const value_t raw = vm.eval_.pop_value();
+    switch (tagged_ptr::region(raw))
+    {
+        case ptr_region::HEAP:
+        {
+            const std::uint64_t addr = tagged_ptr::offset(raw);
+            if (unlikely(addr + 8 > vm.heap_.size())) { vm.halted_ = true; return; }
+            std::memcpy(vm.heap_.data() + addr, &val, 8);
+            break;
+        }
+        case ptr_region::LOCALS:
+        {
+            const std::uint64_t slot = tagged_ptr::offset(raw);
+            if (unlikely(slot >= vm.local_vals_.size())) { vm.halted_ = true; return; }
+            vm.local_vals_[slot] = val;
+            break;
+        }
+        default: vm.halted_ = true; return;
+    }
+}
+
 #endif // ENABLE_HEAP

@@ -1,0 +1,13 @@
+// Test 21 — Pointeur passé en paramètre de fonction
+// Expected output:
+//   10
+//   20
+
+void function double_it(b_8 int* p) {
+    *p = *p * 2;
+}
+
+b_8 int x = 10;
+pf(x);
+double_it(&x);
+pf(x);

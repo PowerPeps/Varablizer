@@ -1,0 +1,16 @@
+// Test 16 — Pointeurs basiques
+// Expected output:
+//   42
+//   99
+//   42
+
+b_8 int value = 42;
+b_8 int* ptr = &value;
+
+pf(*ptr);
+
+*ptr = 99;
+pf(*ptr);
+
+*ptr = 42;
+pf(value);

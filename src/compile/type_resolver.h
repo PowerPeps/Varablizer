@@ -65,6 +65,30 @@ namespace compile
         }
     }
 
+    // Return the STORE_DEREF_N opcode for writing through a tagged pointer (HEAP or LOCALS)
+    [[nodiscard]] inline opcode store_deref_opcode(vtype pointee) noexcept
+    {
+        switch (pointee.width())
+        {
+            case vwidth::W8:  return opcode::STORE_DEREF_8;
+            case vwidth::W16: return opcode::STORE_DEREF_16;
+            case vwidth::W32: return opcode::STORE_DEREF_32;
+            default:          return opcode::STORE_DEREF_64;
+        }
+    }
+
+    // Return the DEREF_N opcode for reading through a pointer to pointee type
+    [[nodiscard]] inline opcode deref_opcode(vtype pointee) noexcept
+    {
+        switch (pointee.width())
+        {
+            case vwidth::W8:  return opcode::DEREF_8;
+            case vwidth::W16: return opcode::DEREF_16;
+            case vwidth::W32: return opcode::DEREF_32;
+            default:          return opcode::DEREF_64;
+        }
+    }
+
     // Return the STORE_HEAP_N opcode matching vtype width
     [[nodiscard]] inline opcode store_heap_opcode(vtype t) noexcept
     {

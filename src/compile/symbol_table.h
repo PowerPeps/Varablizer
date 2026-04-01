@@ -17,8 +17,10 @@ namespace compile
     struct Symbol
     {
         vtype    type;
-        uint32_t slot;      // local slot index from fbp
-        bool     is_param = false;
+        vtype    pointee;       // valid when is_pointer == true
+        uint32_t slot;          // local slot index from fbp
+        bool     is_param   = false;
+        bool     is_pointer = false;
     };
 
     class SymbolTable
@@ -46,12 +48,20 @@ namespace compile
             // Note: scopes stay allocated (slots don't shrink during function lifetime)
         }
 
-        // Allocate a new slot and define a symbol in the current scope
+        // Allocate a new slot and define a value symbol
         void define(const std::string& name, vtype type,
                     bool is_param = false)
         {
             if (!current_) push_scope();
-            current_->symbols[name] = Symbol{ type, next_slot_++, is_param };
+            current_->symbols[name] = Symbol{ type, {}, next_slot_++, is_param, false };
+        }
+
+        // Allocate a new slot and define a pointer symbol
+        void define_ptr(const std::string& name, vtype pointee,
+                        bool is_param = false)
+        {
+            if (!current_) push_scope();
+            current_->symbols[name] = Symbol{ execute::types::PTR, pointee, next_slot_++, is_param, true };
         }
 
         // Define with an explicit pre-assigned slot (for parameters)
@@ -59,7 +69,15 @@ namespace compile
                        uint32_t slot, bool is_param = true)
         {
             if (!current_) push_scope();
-            current_->symbols[name] = Symbol{ type, slot, is_param };
+            current_->symbols[name] = Symbol{ type, {}, slot, is_param, false };
+        }
+
+        // Define a pointer parameter with an explicit pre-assigned slot
+        void define_ptr_at(const std::string& name, vtype pointee,
+                           uint32_t slot, bool is_param = true)
+        {
+            if (!current_) push_scope();
+            current_->symbols[name] = Symbol{ execute::types::PTR, pointee, slot, is_param, true };
         }
 
         // Look up a symbol, walking up the scope chain
