@@ -101,10 +101,10 @@ namespace artisan
             std::cout << "==========================================\n";
 
 
-            std::string cmd = "\"" + varablizer_exe.generic_string() + "\" \"" + vbin_file.generic_string() + "\"";
-            std::system(("\"" + varablizer_exe.generic_string() + "\" --help").c_str());
+            const std::string cmd = "\"" + varablizer_exe.generic_string() + "\""
+                                  + " \"" + vbin_file.generic_string() + "\"";
 
-            int ret = std::system(cmd.c_str());
+            const int ret = std::system(cmd.c_str());
 
             std::cout << "==========================================\n";
 

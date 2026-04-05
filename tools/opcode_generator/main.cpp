@@ -20,6 +20,12 @@ struct OpcodeInfo
     std::string file;
 };
 
+struct Instruction
+{
+    std::uint8_t opcode;
+    std::int64_t operand;
+};
+
 std::vector<OpcodeInfo> parse_opcodes(const fs::path& opcodes_dir)
 {
     std::vector<OpcodeInfo> opcodes;
