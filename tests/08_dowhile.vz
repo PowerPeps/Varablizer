@@ -1,0 +1,11 @@
+// Test 08 — Boucle do/while
+// Expected output:
+//   0
+//   1
+//   2
+
+b_8 int i = 0;
+do {
+    pf(i);
+    i++;
+} while (i < 3);

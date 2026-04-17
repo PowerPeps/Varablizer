@@ -1,0 +1,10 @@
+// Test 20 — Syntaxe destructeur ~ptr
+// Expected output:
+//   77
+//   1
+
+int* ptr = malloc(8);
+*ptr = 77;
+pf(*ptr);
+~ptr;
+pf(1);

@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
     }
 
     auto prog = execute::load_binary_mmap(argv[1]);
-#ifdef VARABLIZER_DEBUG
+#ifdef DEBUG
     std::cerr << "loaded " << prog.size() << " instructions\n";
 #endif
 
@@ -20,9 +20,8 @@ int main(int argc, char* argv[])
     vm.load(std::move(prog));
     vm.run();
 
-#ifdef VARABLIZER_DEBUG
+#ifdef DEBUG
     std::cerr << "stack_size=" << vm.stack_size() << " halted=" << vm.is_halted() << '\n';
 #endif
 
-    std::cout << vm.top() << '\n';
 }

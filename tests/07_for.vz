@@ -1,0 +1,11 @@
+// Test 07 — Boucle for
+// Expected output:
+//   0
+//   1
+//   2
+//   3
+//   4
+
+for (b_8 int i = 0, i < 5, i++) {
+    pf(i);
+}

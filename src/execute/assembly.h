@@ -2,13 +2,18 @@
 #define VARABLIZER_ASSEMBLY_H
 
 #include "opcodes.h"
+#include "opcodes_config.h"
+#include "vtypes.h"
+#include "typed_stack.h"
 #include "validator.h"
 
 #include <array>
+#include <vector>
 #include <stdexcept>
 #include <cassert>
+#include <cstring>
 
-#ifdef VARABLIZER_DEBUG
+#ifdef DEBUG
 #include <sstream>
 #include <string>
 #include <iostream>
@@ -17,20 +22,29 @@
 namespace execute
 {
 #if defined(__GNUC__) || defined(__clang__)
-    #define VARABLIZER_LIKELY(x)   __builtin_expect(!!(x), 1)
-    #define VARABLIZER_UNLIKELY(x) __builtin_expect(!!(x), 0)
+    #define likely(x)   __builtin_expect(!!(x), 1)
+    #define unlikely(x) __builtin_expect(!!(x), 0)
 #else
-    #define VARABLIZER_LIKELY(x)   (x)
-    #define VARABLIZER_UNLIKELY(x) (x)
+    #define likely(x)   (x)
+    #define unlikely(x) (x)
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
-    #define VARABLIZER_FORCE_INLINE __attribute__((always_inline)) inline
+    #define f_incline __attribute__((always_inline)) inline
 #elif defined(_MSC_VER)
-    #define VARABLIZER_FORCE_INLINE __forceinline
+    #define f_incline __forceinline
 #else
-    #define VARABLIZER_FORCE_INLINE inline
+    #define f_incline inline
 #endif
+
+    // Per-function call frame metadata
+    struct call_frame
+    {
+        std::uint32_t return_ip;     // instruction pointer to resume after RET
+        std::uint32_t locals_base;   // index into local_vals_/local_types_ where frame starts
+        std::uint16_t locals_count;  // total local slots (args + declared locals)
+        std::uint16_t args_count;    // number of arguments passed
+    };
 
     class assembly
     {
@@ -42,10 +56,13 @@ namespace execute
         explicit assembly(std::size_t stack_limit = default_stack_limit) noexcept
             : stack_limit_(stack_limit)
         {
-            stack_.reserve(1024);
+            eval_.reserve(1024);
+            local_vals_.reserve(256);
+            local_types_.reserve(256);
+            heap_.reserve(4096);
         }
 
-        void load(program prog)
+        void load(program&& prog)
         {
             auto result = validate_program(prog);
             if (!result)
@@ -56,59 +73,67 @@ namespace execute
                     ": " + result.error->message
                 );
             }
-
-            program_ = std::move(prog);
-            ip_ = 0;
-            halted_ = false;
-            stack_.clear();
+            load_unchecked(std::move(prog));
         }
 
-        void load_unchecked(program prog) noexcept
+        void load_unchecked(program&& prog) noexcept
         {
             program_ = std::move(prog);
-            ip_ = 0;
-            halted_ = false;
-            stack_.clear();
+            ip_      = 0;
+            halted_  = false;
+            fbp_     = 0;
+            eval_.clear();
+            calls_.clear();
+            local_vals_.clear();
+            local_types_.clear();
+            heap_.clear();
         }
 
         void run() noexcept
         {
             const std::size_t prog_size = program_.size();
-            while (VARABLIZER_LIKELY(!halted_ && ip_ < prog_size))
+            while (likely(!halted_ && ip_ < prog_size))
             {
                 step();
             }
         }
 
-        [[nodiscard]] bool is_halted() const noexcept { return halted_; }
-        [[nodiscard]] std::size_t ip() const noexcept { return ip_; }
-        [[nodiscard]] std::size_t stack_size() const noexcept { return stack_.size(); }
+        [[nodiscard]] bool        is_halted()   const noexcept { return halted_; }
+        [[nodiscard]] std::size_t ip()          const noexcept { return ip_; }
+        [[nodiscard]] std::size_t stack_size()  const noexcept { return eval_.size(); }
 
+        // Top value on the evaluation stack
         [[nodiscard]] value_t top() const noexcept
         {
-            assert(!stack_.empty());
-            return stack_.back();
+            assert(!eval_.empty());
+            return eval_.top_value();
+        }
+
+        // Top type on the evaluation stack
+        [[nodiscard]] vtype top_type() const noexcept
+        {
+            assert(!eval_.empty());
+            return eval_.top_type();
         }
 
         void set_stack_limit(std::size_t limit) noexcept { stack_limit_ = limit; }
         [[nodiscard]] std::size_t stack_limit() const noexcept { return stack_limit_; }
 
-#ifdef VARABLIZER_DEBUG
+#ifdef DEBUG
         [[nodiscard]] std::string to_string() const
         {
             std::ostringstream oss;
-            oss << "-- \033[34m" << ip_ << "\033[0m\n";
+            oss << "-- ip=\033[34m" << ip_ << "\033[0m  fbp=" << fbp_ << "\n";
 
-            for (auto it = stack_.rbegin(); it != stack_.rend(); ++it)
+            for (std::size_t i = eval_.values.size(); i > 0; --i)
             {
-                if (it == stack_.rbegin())
-                {
-                    oss << "\033[32m|\033[0m\033[33m" << *it << "\033[0m\033[32m|\033[0m\n";
-                }
+                const value_t v = eval_.values[i - 1];
+                const vtype   t = eval_.types[i - 1];
+                if (i == eval_.values.size())
+                    oss << "\033[32m|\033[0m\033[33m" << v << "\033[0m\033[32m|\033[0m";
                 else
-                {
-                    oss << "|" << *it << "|\n";
-                }
+                    oss << "|" << v << "|";
+                oss << "  (w" << static_cast<int>(t.bit_width()) << ")\n";
             }
             oss << "\n";
             return oss.str();
@@ -121,7 +146,7 @@ namespace execute
 #endif
 
     private:
-        VARABLIZER_FORCE_INLINE void step() noexcept
+        f_incline void step() noexcept
         {
             const instruction& instr = program_[ip_];
             const auto idx = static_cast<std::size_t>(instr.op);
@@ -129,208 +154,96 @@ namespace execute
             ++ip_;
         }
 
-        VARABLIZER_FORCE_INLINE value_t pop() noexcept
+        // Pop a raw value (no type) — for legacy handlers
+        f_incline value_t pop() noexcept
         {
-            assert(!stack_.empty());
-            value_t v = stack_.back();
-            stack_.pop_back();
-            return v;
+            assert(!eval_.empty());
+            return eval_.pop_value();
         }
 
-        VARABLIZER_FORCE_INLINE void push(value_t v) noexcept
+        // Push with default I64 type — for legacy PUSH opcode
+        f_incline void push(value_t v) noexcept
         {
-            if (VARABLIZER_UNLIKELY(stack_.size() >= stack_limit_))
+            if (unlikely(eval_.size() >= stack_limit_))
             {
                 halted_ = true;
                 return;
             }
-            stack_.push_back(v);
+            eval_.push(v, types::I64);
         }
 
+        // Typed binary operation: promotes types, auto-masks result
         template <typename Op>
-        VARABLIZER_FORCE_INLINE void binary(Op op) noexcept
+        f_incline void binary_typed(Op op) noexcept
         {
-            value_t b = pop();
-            value_t a = pop();
-            push(op(a, b));
-        }
-
-        static void h_nop(assembly&) noexcept
-        {
-        }
-
-        static void h_push(assembly& vm) noexcept
-        {
-            vm.push(vm.program_[vm.ip_].operand);
-        }
-
-        static void h_pop(assembly& vm) noexcept
-        {
-            vm.pop();
-        }
-
-        static void h_add(assembly& vm) noexcept
-        {
-            vm.binary([](value_t a, value_t b) noexcept { return a + b; });
-        }
-
-        static void h_sub(assembly& vm) noexcept
-        {
-            vm.binary([](value_t a, value_t b) noexcept { return a - b; });
-        }
-
-        static void h_mul(assembly& vm) noexcept
-        {
-            vm.binary([](value_t a, value_t b) noexcept { return a * b; });
-        }
-
-        static void h_div(assembly& vm) noexcept
-        {
-            value_t b = vm.pop();
-            value_t a = vm.pop();
-            vm.push(VARABLIZER_LIKELY(b != 0) ? a / b : 0);
-        }
-
-        static void h_mod(assembly& vm) noexcept
-        {
-            value_t b = vm.pop();
-            value_t a = vm.pop();
-            vm.push(VARABLIZER_LIKELY(b != 0) ? a % b : 0);
-        }
-
-        static void h_eq(assembly& vm) noexcept
-        {
-            value_t b = vm.pop();
-            value_t a = vm.pop();
-
-            if(a == b) {
-                vm.program_[vm.ip_].op = opcode::NOP;
-                vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand );
+            if (unlikely(eval_.size() < 2))
+            {
+                halted_ = true;
+                return;
             }
+
+            const value_t bv = eval_.values.back();
+            const vtype   bt = eval_.types.back();
+            eval_.values.pop_back();
+            eval_.types.pop_back();
+
+            value_t& av = eval_.values.back();
+            vtype&   at = eval_.types.back();
+
+            const vtype result_type = promote(at, bt);
+            const value_t raw = op(av, bv);
+            av = truncate_to_type(raw, result_type);
+            at = result_type;
         }
 
-        static void h_neq(assembly& vm) noexcept
+        // Legacy untyped binary — kept for backward compatibility with old PUSH usage
+        template <typename Op>
+        f_incline void binary(Op op) noexcept
         {
-            value_t b = vm.pop();
-            value_t a = vm.pop();
-
-            if(a != b) {
-                vm.program_[vm.ip_].op = opcode::NOP;
-                vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand );
-            }
-        }
-
-        static void h_lt(assembly& vm) noexcept
-        {
-            value_t b = vm.pop();
-            value_t a = vm.pop();
-
-            if(a < b) {
-                vm.program_[vm.ip_].op = opcode::NOP;
-                vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand );
-            }
-        }
-
-        static void h_lte(assembly& vm) noexcept
-        {
-            value_t b = vm.pop();
-            value_t a = vm.pop();
-
-            if(a <= b) {
-                vm.program_[vm.ip_].op = opcode::NOP;
-                vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand );
-            }
-        }
-
-        static void h_gt(assembly& vm) noexcept
-        {
-            value_t b = vm.pop();
-            value_t a = vm.pop();
-
-            if(a > b) {
-                vm.program_[vm.ip_].op = opcode::NOP;
-                vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand );
-            }
-        }
-
-        static void h_gte(assembly& vm) noexcept
-        {
-            value_t b = vm.pop();
-            value_t a = vm.pop();
-
-            if(a >= b) {
-                vm.program_[vm.ip_].op = opcode::NOP;
-                vm.ip_ = static_cast<std::size_t>( --vm.program_[vm.ip_].operand );
-            }
-        }
-
-        static void h_dd(assembly& vm) noexcept
-        {
-#ifdef VARABLIZER_DEBUG
-            vm.debug_dump();
-#else
-            (void)vm;
-#endif
-        }
-
-        static void h_halt(assembly& vm) noexcept
-        {
-            vm.halted_ = true;
-        }
-
-        static void h_goto(assembly& vm) noexcept
-        {
-            vm.program_[vm.ip_].op = opcode::NOP;
-            vm.ip_ = static_cast<std::size_t>(--vm.program_[vm.ip_].operand);
-        }
-
-        static void h_cout(assembly& vm) noexcept
-        {
-            std::cout << vm.top() << std::flush;
-        }
-
-        static void h_cin(assembly& vm) noexcept
-        {
-            value_t v{};
-            std::cin >> v;
-            std::cin.clear();
-            vm.push(v);
+            binary_typed(op);
         }
 
     private:
-        std::vector<value_t> stack_;
-        program program_;
-        std::size_t ip_ = 0;
-        std::size_t stack_limit_;
-        bool halted_ = false;
+        // ── Evaluation stack (expression temporaries) ─────────────────────────
+        typed_stack eval_;
 
-        static constexpr std::array<handler_t, opcode_count> handlers_ =
-        {
-            &assembly::h_nop,
-            &assembly::h_push,
-            &assembly::h_pop,
-            &assembly::h_add,
-            &assembly::h_sub,
-            &assembly::h_mul,
-            &assembly::h_div,
-            &assembly::h_mod,
-            &assembly::h_dd,
-            &assembly::h_halt,
-            &assembly::h_goto,
-            &assembly::h_eq,
-            &assembly::h_neq,
-            &assembly::h_lt,
-            &assembly::h_lte,
-            &assembly::h_gt,
-            &assembly::h_gte,
-            &assembly::h_cout,
-            &assembly::h_cin,
-        };
+        // ── Call stack (return addresses + frame metadata) ────────────────────
+        std::vector<call_frame> calls_;
+
+        // ── Local variable table (flat SoA, partitioned by frames) ───────────
+        std::vector<value_t> local_vals_;
+        std::vector<vtype>   local_types_;
+        std::uint32_t fbp_ = 0;   // frame base pointer (index into local_vals_)
+
+        // ── Heap (byte-addressable, bump allocator) ───────────────────────────
+        std::vector<std::uint8_t> heap_;
+
+        // ── Program state ─────────────────────────────────────────────────────
+        program       program_;
+        std::size_t   ip_          = 0;
+        std::size_t   stack_limit_;
+        bool          halted_      = false;
+
+        // ── Opcode handlers (included as members) ────────────────────────────
+#include "opcodes/control.h"
+#include "opcodes/stack.h"
+#include "opcodes/math.h"
+#include "opcodes/debug.h"
+#include "opcodes/flow.h"
+#include "opcodes/io.h"
+#include "opcodes/locals.h"
+#include "opcodes/heap.h"
+#include "opcodes/call.h"
+#include "opcodes/bitwise.h"
+#include "opcodes/compare.h"
+
+#include "generated/handlers_table.inl"
+
     };
 
-#undef VARABLIZER_LIKELY
-#undef VARABLIZER_UNLIKELY
-#undef VARABLIZER_FORCE_INLINE
+#undef likely
+#undef unlikely
+#undef f_incline
 } // namespace execute
 
 #endif // VARABLIZER_ASSEMBLY_H

@@ -1,0 +1,16 @@
+// Test 02 — Opérateurs arithmétiques
+// Expected output:
+//   30
+//   10
+//   200
+//   2
+//   2
+
+b_8 int a = 20;
+b_8 int b = 10;
+
+pf(a + b);
+pf(a - b);
+pf(a * b);
+pf(a / b);
+pf(a % 3);

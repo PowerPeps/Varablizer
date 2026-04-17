@@ -1,0 +1,21 @@
+// Test 22 — Fonction retournant un pointeur (malloc)
+// Expected output:
+//   0
+//   1
+//   2
+//   3
+//   4
+
+b_8 int* function alloc_val(b_8 int v) {
+    b_8 int* p = malloc(8);
+    *p = v;
+    return p;
+}
+
+b_8 int i = 0;
+while (i < 5) {
+    b_8 int* ptr = alloc_val(i);
+    pf(*ptr);
+    free(ptr);
+    i++;
+}

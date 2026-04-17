@@ -1,0 +1,18 @@
+// Test 03 — Opérateurs de comparaison
+// Expected output:
+//   0
+//   1
+//   0
+//   1
+//   0
+//   1
+
+b_8 int a = 5;
+b_8 int b = 10;
+
+pf(a == b);
+pf(a != b);
+pf(a > b);
+pf(a < b);
+pf(a >= b);
+pf(a <= b);

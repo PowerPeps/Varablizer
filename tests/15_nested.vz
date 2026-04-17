@@ -1,0 +1,17 @@
+// Test 15 — Boucles imbriquées + fonctions imbriquées
+// Expected output:
+//   0
+//   1
+//   2
+//   10
+//   11
+//   12
+//   20
+//   21
+//   22
+
+for (b_8 int i = 0, i < 3, i++) {
+    for (b_8 int j = 0, j < 3, j++) {
+        pf(i * 10 + j);
+    }
+}

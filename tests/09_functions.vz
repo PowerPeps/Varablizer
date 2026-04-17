@@ -1,0 +1,24 @@
+// Test 09 — Fonctions et appels
+// Expected output:
+//   30
+//   50
+//   1
+
+int function add(b_8 int x, b_8 int y) {
+    return x + y;
+}
+
+int fn multiply(b_8 int x, b_8 int y) {
+    return x * y;
+}
+
+void function printIfPositive(b_8 int n) {
+    if (n > 0) {
+        pf(n);
+    }
+}
+
+pf(add(10, 20));
+pf(multiply(5, 10));
+printIfPositive(1);
+printIfPositive(-5);

@@ -1,0 +1,21 @@
+// Test 10 — Récursivité
+// Expected output:
+//   120
+//   8
+
+int function fact(b_8 int n) {
+    if (n <= 1) {
+        return 1;
+    }
+    return n * fact(n - 1);
+}
+
+int function pow2(b_8 int n) {
+    if (n == 0) {
+        return 1;
+    }
+    return 2 * pow2(n - 1);
+}
+
+pf(fact(5));
+pf(pow2(3));

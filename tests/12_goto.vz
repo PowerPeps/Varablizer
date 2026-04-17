@@ -1,0 +1,24 @@
+// Test 12 — Goto et labels
+// Expected output:
+//   1
+//   2
+//   3
+//   99
+//   0
+
+b_8 int i = 1;
+
+#loop:
+pf(i);
+i++;
+if (i <= 3) {
+    goto #loop;
+}
+
+pf(99);
+goto #end;
+
+pf(999);
+
+#end:
+pf(0);

@@ -1,0 +1,13 @@
+// Test 06 — Boucle while
+// Expected output:
+//   0
+//   1
+//   2
+//   3
+//   4
+
+b_8 int i = 0;
+while (i < 5) {
+    pf(i);
+    i++;
+}

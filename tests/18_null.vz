@@ -1,0 +1,24 @@
+// Test 18 — null et comparaisons
+// Expected output:
+//   1
+//   0
+//   42
+
+b_8 int* ptr = null;
+
+if (ptr == null) {
+    pf(1);
+} else {
+    pf(0);
+}
+
+b_8 int val = 42;
+ptr = &val;
+
+if (ptr != null) {
+    pf(0);
+} else {
+    pf(1);
+}
+
+pf(*ptr);
